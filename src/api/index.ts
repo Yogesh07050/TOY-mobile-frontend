@@ -1,0 +1,13 @@
+export * from './client';
+export * as authApi from './auth';
+export * as usersApi from './users';
+export * as offersApi from './offers';
+export * as shopsApi from './shops';
+export * as categoriesApi from './categories';
+export * as discoveryApi from './discovery';
+export * as favoritesApi from './favorites';
+export * as followingApi from './following';
+export * as notificationsApi from './notifications';
+export * as claimsApi from './claims';
+export * as uploadsApi from './uploads';
+export * as analyticsApi from './analytics';
