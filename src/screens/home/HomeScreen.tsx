@@ -16,7 +16,9 @@ import {
   useCategories,
   useToggleFavorite,
 } from '../../hooks';
+import { useOffersList } from '../../hooks/useOffers';
 import { trackBanner, trackEvent } from '../../services/analytics/analyticsService';
+import { getTimeOfDayGreeting } from '../../utils/greeting';
 import type { MainTabScreenProps } from '../../navigation/types';
 import type { Offer, Banner, Category } from '../../types';
 
@@ -32,6 +34,7 @@ export function HomeScreen({ navigation }: Props) {
   const endingSoon = useEndingSoonOffers();
   const nearby = useNearbyOffers();
   const recommended = useRecommendedOffers();
+  const favoriteShopOffers = useOffersList({ following: true, sort: 'newest', limit: 10 });
   const popular = usePopularOffers();
   const categories = useCategories();
   const toggleFavorite = useToggleFavorite();
@@ -44,11 +47,16 @@ export function HomeScreen({ navigation }: Props) {
     endingSoon.refetch();
     nearby.refetch();
     recommended.refetch();
+    favoriteShopOffers.refetch();
     popular.refetch();
     categories.refetch();
-  }, [banners, endingSoon, nearby, recommended, popular, categories]);
+  }, [banners, endingSoon, nearby, recommended, favoriteShopOffers, popular, categories]);
 
   const openOffer = (offer: Offer) => navigation.navigate('OfferDetail', { offerId: offer.id });
+  const openRecommendedOffer = (offer: Offer) => {
+    trackEvent({ event: 'RECOMMENDATION_CLICK', offerId: offer.id });
+    openOffer(offer);
+  };
   const openBanner = (banner: Banner) => {
     trackBanner(banner.id, 'click');
     navigation.navigate('OfferDetail', { offerId: banner.offerId });
@@ -71,9 +79,11 @@ export function HomeScreen({ navigation }: Props) {
         <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.sm, gap: spacing.sm }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <View style={{ gap: 2 }}>
-              <Text style={{ color: colors.textMuted, fontSize: fontSizes.sm }}>Hi {user?.name?.split(' ')[0] ?? 'there'} 👋</Text>
+              <Text style={{ color: colors.textMuted, fontSize: fontSizes.sm }}>
+                {getTimeOfDayGreeting()} {user?.name?.split(' ')[0] ?? 'there'} 👋
+              </Text>
               <Text style={{ color: colors.text, fontSize: fontSizes.xl, fontWeight: fontWeights.bold }}>
-                Discover great offers
+                {user?.preferencesCompleted ? 'Offers picked for you' : 'Discover great offers'}
               </Text>
             </View>
             <Pressable
@@ -147,6 +157,15 @@ export function HomeScreen({ navigation }: Props) {
           subtitle={recommended.data?.[0]?.reason}
           offers={recommended.data ?? []}
           loading={recommended.isLoading}
+          onOfferPress={openRecommendedOffer}
+          onToggleSave={onToggleSave}
+        />
+
+        <OfferRail
+          title="From Your Favorite Shops"
+          subtitle="New offers from shops and categories you follow"
+          offers={favoriteShopOffers.data?.pages[0]?.offers ?? []}
+          loading={favoriteShopOffers.isLoading}
           onOfferPress={openOffer}
           onToggleSave={onToggleSave}
         />

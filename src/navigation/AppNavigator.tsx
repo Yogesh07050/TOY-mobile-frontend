@@ -11,8 +11,7 @@ import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import { ChangePasswordScreen } from '../screens/profile/ChangePasswordScreen';
 import { NotificationPreferencesScreen } from '../screens/notifications/NotificationPreferencesScreen';
 import { SelectLocationScreen } from '../screens/profile/SelectLocationScreen';
-import { FollowedShopsScreen } from '../screens/profile/FollowedShopsScreen';
-import { FollowedCategoriesScreen } from '../screens/profile/FollowedCategoriesScreen';
+import { EditPreferencesScreen } from '../screens/profile/EditPreferencesScreen';
 import { ThemeSettingsScreen } from '../screens/profile/ThemeSettingsScreen';
 import type { RootStackParamList } from './types';
 
@@ -32,8 +31,7 @@ export function AppNavigator() {
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} />
       <Stack.Screen name="SelectLocation" component={SelectLocationScreen} options={{ presentation: 'modal' }} />
-      <Stack.Screen name="FollowedShops" component={FollowedShopsScreen} />
-      <Stack.Screen name="FollowedCategories" component={FollowedCategoriesScreen} />
+      <Stack.Screen name="EditPreferences" component={EditPreferencesScreen} />
       <Stack.Screen name="ThemeSettings" component={ThemeSettingsScreen} />
     </Stack.Navigator>
   );

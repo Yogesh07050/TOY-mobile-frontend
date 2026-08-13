@@ -6,3 +6,4 @@ export * from './SearchBar';
 export * from './LocationSelector';
 export * from './SectionHeader';
 export * from './OfferRail';
+export * from './PreferenceEditorForm';

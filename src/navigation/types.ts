@@ -29,8 +29,7 @@ export type RootStackParamList = {
   ChangePassword: undefined;
   NotificationPreferences: undefined;
   SelectLocation: undefined;
-  FollowedShops: undefined;
-  FollowedCategories: undefined;
+  EditPreferences: undefined;
   ThemeSettings: undefined;
 };
 

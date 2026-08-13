@@ -30,8 +30,7 @@ export function ProfileScreen({ navigation }: Props) {
     { icon: 'person-outline', label: 'Edit Profile', onPress: () => navigation.navigate('EditProfile') },
     { icon: 'lock-closed-outline', label: 'Change Password', onPress: () => navigation.navigate('ChangePassword') },
     { icon: 'location-outline', label: 'Preferred Location', onPress: () => navigation.navigate('SelectLocation') },
-    { icon: 'pricetags-outline', label: 'Preferred Categories', onPress: () => navigation.navigate('FollowedCategories') },
-    { icon: 'storefront-outline', label: 'Favorite Shops', onPress: () => navigation.navigate('FollowedShops') },
+    { icon: 'options-outline', label: 'Preferences', onPress: () => navigation.navigate('EditPreferences') },
   ];
 
   const preferenceRows: Row[] = [

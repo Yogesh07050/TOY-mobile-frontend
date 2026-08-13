@@ -6,3 +6,4 @@ export * from './useDiscovery';
 export * from './useFollowing';
 export * from './useNotifications';
 export * from './useClaims';
+export * from './usePreferences';

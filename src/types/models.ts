@@ -23,6 +23,8 @@ export interface User {
   status: 'active' | 'inactive';
   emailVerified: boolean;
   avatarUrl: string | null;
+  preferencesCompleted: boolean;
+  minimumDiscountPercent: number | null;
   preferredLocation: PreferredLocation | null;
   roles: string[];
   permissions: string[];
@@ -282,7 +284,37 @@ export type ClientAnalyticsEvent =
   | 'SHOP_VIEW'
   | 'LOCATION_SEARCH'
   | 'NEARBY_OFFER_VIEW'
-  | 'BANNER_IMPRESSION';
+  | 'BANNER_IMPRESSION'
+  // V2 personalization — mirrors backend CLIENT_EVENT_TYPES additions exactly.
+  | 'PREFERENCE_ONBOARDING_STARTED'
+  | 'PREFERENCE_CATEGORY_SELECTED'
+  | 'PREFERENCE_SHOP_SELECTED'
+  | 'PREFERENCE_DISCOUNT_SELECTED'
+  | 'PREFERENCE_OFFER_TYPE_SELECTED'
+  | 'PERSONALIZED_OFFER_IMPRESSION'
+  | 'RECOMMENDATION_CLICK'
+  | 'RECOMMENDATION_DISMISS';
+
+// Mirrors backend/src/modules/preferences/preferences.constants.js exactly —
+// not the same vocabulary as Offer['offerType'], see that file's comment.
+export type OfferTypePreference =
+  | 'PERCENTAGE_DISCOUNT'
+  | 'BUY_ONE_GET_ONE'
+  | 'BUY_TWO_GET_ONE'
+  | 'FLAT_DISCOUNT'
+  | 'CASHBACK'
+  | 'FREE_ITEM'
+  | 'COMBO_OFFER'
+  | 'CLEARANCE_SALE'
+  | 'APP_EXCLUSIVE';
+
+export interface CustomerPreferences {
+  preferencesCompleted: boolean;
+  categoryIds: number[];
+  shopIds: number[];
+  minimumDiscountPercent: number | null;
+  offerTypes: OfferTypePreference[];
+}
 
 export interface FollowedShop {
   id: number;

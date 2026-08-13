@@ -11,3 +11,4 @@ export * as notificationsApi from './notifications';
 export * as claimsApi from './claims';
 export * as uploadsApi from './uploads';
 export * as analyticsApi from './analytics';
+export * as preferencesApi from './preferences';
