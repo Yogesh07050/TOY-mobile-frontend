@@ -12,3 +12,8 @@ export * as claimsApi from './claims';
 export * as uploadsApi from './uploads';
 export * as analyticsApi from './analytics';
 export * as preferencesApi from './preferences';
+export * as adminOffersApi from './adminOffers';
+export * as adminShopsApi from './adminShops';
+export * as adminBannersApi from './adminBanners';
+export * as subscriptionsApi from './subscriptions';
+export * as adminAnalyticsApi from './adminAnalytics';

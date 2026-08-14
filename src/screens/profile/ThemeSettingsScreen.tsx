@@ -4,9 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import type { ThemePreference } from '../../theme';
 import { Screen } from '../../components/ui';
-import type { RootStackScreenProps } from '../../navigation/types';
+import type { GoBackScreenProps } from '../../navigation/types';
 
-type Props = RootStackScreenProps<'ThemeSettings'>;
+type Props = GoBackScreenProps;
 
 const OPTIONS: Array<{ value: ThemePreference; label: string; icon: keyof typeof Ionicons.glyphMap }> = [
   { value: 'light', label: 'Light', icon: 'sunny-outline' },

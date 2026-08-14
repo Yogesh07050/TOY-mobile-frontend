@@ -2,6 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL } from '../utils/config';
 import { clearTokens, getTokens, setTokens } from '../services/auth/tokenStorage';
 import type { ApiErrorBody, AuthResult } from '../types';
+import type { PlanUpgradeRequiredDetails } from '../types/admin';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -70,11 +71,20 @@ apiClient.interceptors.response.use(
 export function getApiErrorMessage(error: unknown, fallback = 'Something went wrong. Please try again.'): string {
   if (axios.isAxiosError(error)) {
     const body = error.response?.data as ApiErrorBody | undefined;
-    if (body?.error?.details?.length) {
-      return body.error.details.map((d) => d.message).join('\n');
+    const details = body?.error?.details;
+    if (Array.isArray(details) && details.length) {
+      return details.map((d) => d.message).join('\n');
     }
     if (body?.error?.message) return body.error.message;
     if (error.message === 'Network Error') return 'No internet connection. Please check your network.';
   }
   return fallback;
+}
+
+/** Extracts the PLAN_UPGRADE_REQUIRED payload when that's what the request failed with, else null. */
+export function getPlanUpgradeDetails(error: unknown): PlanUpgradeRequiredDetails | null {
+  if (!axios.isAxiosError(error)) return null;
+  const body = error.response?.data as ApiErrorBody | undefined;
+  if (body?.error?.code !== 'PLAN_UPGRADE_REQUIRED') return null;
+  return (body.error.details as unknown as PlanUpgradeRequiredDetails) ?? null;
 }

@@ -30,8 +30,11 @@ export interface ApiErrorBody {
       | 'VALIDATION_ERROR'
       | 'RATE_LIMITED'
       | 'TOKEN_EXPIRED'
-      | 'INTERNAL_ERROR';
+      | 'INTERNAL_ERROR'
+      | 'PLAN_UPGRADE_REQUIRED';
     message: string;
-    details?: Array<{ field: string; message: string }>;
+    // Array of field errors for VALIDATION_ERROR; a plan-upgrade payload object
+    // for PLAN_UPGRADE_REQUIRED (see PlanUpgradeRequiredDetails in types/admin.ts).
+    details?: Array<{ field: string; message: string }> | Record<string, unknown>;
   };
 }

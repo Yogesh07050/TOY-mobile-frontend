@@ -40,6 +40,43 @@ export type MainTabScreenProps<T extends keyof MainTabParamList> = CompositeScre
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<RootStackParamList, T>;
 
+/** Structural nav prop for screens (EditProfile, ChangePassword, ThemeSettings) reused across
+ * both the customer RootStack and the AdminStack — they only ever call goBack(). */
+export interface GoBackScreenProps {
+  navigation: { goBack: () => void };
+}
+
+// ---- Shop Admin (V3) --------------------------------------------------------
+
+export type AdminTabParamList = {
+  Dashboard: undefined;
+  Offers: undefined;
+  Create: undefined;
+  Analytics: undefined;
+  AdminProfile: undefined;
+};
+
+export type AdminStackParamList = {
+  AdminTabs: undefined;
+  OfferForm: { offerId?: number; duplicateFrom?: import('../types/admin').OfferFormValues } | undefined;
+  BranchList: undefined;
+  BranchForm: { branchId?: number } | undefined;
+  BannerList: undefined;
+  BannerForm: { bannerId?: number } | undefined;
+  Subscription: undefined;
+  AnalyticsDetail: { dashboard: 'overview' | 'offerPerformance' | 'funnel' | 'locations' | 'branches' };
+  EditProfile: undefined;
+  ChangePassword: undefined;
+  ThemeSettings: undefined;
+};
+
+export type AdminTabScreenProps<T extends keyof AdminTabParamList> = CompositeScreenProps<
+  BottomTabScreenProps<AdminTabParamList, T>,
+  NativeStackScreenProps<AdminStackParamList>
+>;
+
+export type AdminStackScreenProps<T extends keyof AdminStackParamList> = NativeStackScreenProps<AdminStackParamList, T>;
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace ReactNavigation {

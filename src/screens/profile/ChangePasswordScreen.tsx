@@ -6,9 +6,9 @@ import { Screen, Button, TextField } from '../../components/ui';
 import { changePassword } from '../../api/auth';
 import { getApiErrorMessage } from '../../api/client';
 import { isStrongPassword, PASSWORD_REQUIREMENTS_MESSAGE } from '../../utils/validators';
-import type { RootStackScreenProps } from '../../navigation/types';
+import type { GoBackScreenProps } from '../../navigation/types';
 
-type Props = RootStackScreenProps<'ChangePassword'>;
+type Props = GoBackScreenProps;
 
 export function ChangePasswordScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights } = useTheme();

@@ -7,9 +7,9 @@ import { Screen, Button, TextField, Avatar } from '../../components/ui';
 import { useAuth } from '../../store/AuthContext';
 import { uploadAvatar } from '../../api/uploads';
 import { getApiErrorMessage } from '../../api/client';
-import type { RootStackScreenProps } from '../../navigation/types';
+import type { GoBackScreenProps } from '../../navigation/types';
 
-type Props = RootStackScreenProps<'EditProfile'>;
+type Props = GoBackScreenProps;
 
 export function EditProfileScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights } = useTheme();
