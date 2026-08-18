@@ -12,6 +12,7 @@ type Props = RootStackScreenProps<'NotificationPreferences'>;
 const ROWS: Array<{ key: keyof NotificationPreferences; label: string; description: string }> = [
   { key: 'nearbyOffers', label: 'Nearby Offers', description: 'Deals near your current location' },
   { key: 'favoriteExpiring', label: 'Saved Offer Expiry', description: 'Reminders before your saved offers end' },
+  { key: 'savedServiceOfferExpiring', label: 'Saved Service Offer Expiry', description: 'Reminders before your saved service offers end' },
   { key: 'followedShopOffers', label: 'Followed Shop Offers', description: 'New offers from shops you follow' },
   { key: 'followedCategoryOffers', label: 'Followed Category Offers', description: 'New offers in categories you follow' },
   { key: 'offerUpdates', label: 'Recommended Offers', description: 'Personalized offer suggestions' },

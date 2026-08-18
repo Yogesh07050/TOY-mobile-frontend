@@ -8,8 +8,15 @@ import type { RootStackScreenProps } from '../../navigation/types';
 type Props = RootStackScreenProps<'ClaimQr'>;
 
 export function ClaimQrScreen({ route, navigation }: Props) {
-  const { claim } = route.params;
+  const params = route.params;
+  const claim = 'claim' in params ? params.claim : null;
+  const serviceClaim = 'serviceClaim' in params ? params.serviceClaim : null;
   const { colors, spacing, fontSizes, fontWeights, radii } = useTheme();
+
+  const headline = claim ? claim.offer.offerText ?? claim.offer.title : serviceClaim!.serviceOffer.offerText ?? serviceClaim!.service.name;
+  const shopName = claim ? claim.shop.name : serviceClaim!.shop.name;
+  const code = claim ? claim.code : serviceClaim!.code;
+  const status = claim ? claim.status : serviceClaim!.status;
 
   return (
     <Screen>
@@ -18,9 +25,9 @@ export function ClaimQrScreen({ route, navigation }: Props) {
           Your Offer
         </Text>
         <Text style={{ color: colors.text, fontSize: fontSizes.xl, fontWeight: fontWeights.bold, textAlign: 'center' }}>
-          {claim.offer.offerText ?? claim.offer.title}
+          {headline}
         </Text>
-        <Text style={{ color: colors.textMuted, fontSize: fontSizes.md, marginBottom: spacing.sm }}>{claim.shop.name}</Text>
+        <Text style={{ color: colors.textMuted, fontSize: fontSizes.md, marginBottom: spacing.sm }}>{shopName}</Text>
 
         <View
           style={{
@@ -31,17 +38,17 @@ export function ClaimQrScreen({ route, navigation }: Props) {
             borderColor: colors.border,
           }}
         >
-          <QRCode value={claim.code} size={200} backgroundColor="#ffffff" color="#14110d" />
+          <QRCode value={code} size={200} backgroundColor="#ffffff" color="#14110d" />
         </View>
 
         <View style={{ alignItems: 'center', gap: spacing.xxs, marginTop: spacing.sm }}>
           <Text style={{ color: colors.textMuted, fontSize: fontSizes.sm }}>Claim Code</Text>
           <Text style={{ color: colors.text, fontSize: fontSizes.display, fontWeight: fontWeights.black, letterSpacing: 4 }}>
-            {claim.code}
+            {code}
           </Text>
         </View>
 
-        <Badge label={claim.status === 'redeemed' ? 'Redeemed' : 'Claimed'} tone={claim.status === 'redeemed' ? 'success' : 'brand'} />
+        <Badge label={status === 'redeemed' ? 'Redeemed' : 'Claimed'} tone={status === 'redeemed' ? 'success' : 'brand'} />
 
         <Text style={{ color: colors.textMuted, fontSize: fontSizes.sm, textAlign: 'center', marginTop: spacing.xs }}>
           Show this code at the shop to redeem your offer.

@@ -10,21 +10,24 @@ export type AuthStackParamList = {
 };
 
 export type MainTabParamList = {
-  Home: undefined;
-  Explore: undefined;
+  Offers: undefined;
+  Services: undefined;
+  NearMe: undefined;
   Saved: undefined;
-  Notifications: undefined;
   Profile: undefined;
 };
 
 export type RootStackParamList = {
   MainTabs: undefined;
   OfferDetail: { offerId: number };
+  ServiceDetail: { serviceId: number };
   ShopDetail: { shopId: number | string };
   CategoryOffers: { categoryId: number; categoryName: string };
   Search: { query?: string } | undefined;
   ClaimConfirmation: { offerId: number };
-  ClaimQr: { claim: import('../types').Claim };
+  ServiceClaimConfirmation: { serviceOfferId: number; serviceId: number };
+  ClaimQr: { claim: import('../types').Claim } | { serviceClaim: import('../types').ServiceOfferClaim };
+  Notifications: undefined;
   EditProfile: undefined;
   ChangePassword: undefined;
   NotificationPreferences: undefined;
@@ -65,6 +68,11 @@ export type AdminStackParamList = {
   BannerForm: { bannerId?: number } | undefined;
   Subscription: undefined;
   AnalyticsDetail: { dashboard: 'overview' | 'offerPerformance' | 'funnel' | 'locations' | 'branches' };
+  AdminServices: undefined;
+  ServiceForm: { serviceId?: number } | undefined;
+  ServiceOffers: { serviceId: number };
+  ServiceOfferForm: { serviceId: number; offerId?: number };
+  ServiceAnalytics: undefined;
   EditProfile: undefined;
   ChangePassword: undefined;
   ThemeSettings: undefined;

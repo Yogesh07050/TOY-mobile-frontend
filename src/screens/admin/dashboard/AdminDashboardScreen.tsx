@@ -124,6 +124,40 @@ export function AdminDashboardScreen({ navigation }: Props) {
           <Text style={{ color: colors.text, fontWeight: fontWeights.semibold }}>Manage Subscription</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.textSubtle} />
         </Pressable>
+
+        <Pressable
+          onPress={() => navigation.navigate('AdminServices')}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: spacing.sm,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.surface,
+          }}
+        >
+          <Text style={{ color: colors.text, fontWeight: fontWeights.semibold }}>Manage Services</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textSubtle} />
+        </Pressable>
+
+        <Pressable
+          onPress={() => navigation.navigate('ServiceAnalytics')}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: spacing.sm,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.surface,
+          }}
+        >
+          <Text style={{ color: colors.text, fontWeight: fontWeights.semibold }}>Service Analytics</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textSubtle} />
+        </Pressable>
       </ScrollView>
     </Screen>
   );

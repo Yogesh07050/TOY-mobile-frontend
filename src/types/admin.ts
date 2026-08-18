@@ -1,4 +1,14 @@
-import type { Offer, OfferDetail, OfferType, ShopBranch } from './models';
+import type {
+  AvailableDay,
+  BookingType,
+  Offer,
+  OfferDetail,
+  OfferType,
+  PricingType,
+  ServiceDetail,
+  ServiceOfferType,
+  ShopBranch,
+} from './models';
 
 // ---- Offers (management) ---------------------------------------------------
 
@@ -339,4 +349,120 @@ export interface BranchPerformanceAnalytics {
   range: AnalyticsRange;
   branches: BranchPerformanceRow[];
   winners: { bestPerforming: BranchPerformanceRow | null; highestConversion: BranchPerformanceRow | null };
+}
+
+// ---- V4 — Services (management) --------------------------------------------
+
+export interface ServiceFormValues {
+  shopId: number;
+  categoryId?: number | null;
+  subcategoryId?: number | null;
+  name: string;
+  description?: string;
+  pricingType: PricingType;
+  price?: number | null;
+  durationMinutes?: number | null;
+  durationLabel?: string;
+  availableDays: AvailableDay[];
+  availableTimeStart?: string;
+  availableTimeEnd?: string;
+  homeService: boolean;
+  walkInAvailable: boolean;
+  appointmentRequired: boolean;
+  bookingType: BookingType;
+  serviceArea?: string;
+  termsConditions?: string;
+  applicabilityType: 'shop_wide' | 'selected_branches' | 'online';
+  status: 'draft' | 'active';
+  startDate?: string | null;
+  endDate?: string | null;
+  branchIds: number[];
+  images: Array<{ url: string; thumbnailUrl?: string }>;
+}
+
+export type ManagedService = ServiceDetail;
+
+export interface ServiceOfferFormValues {
+  offerText?: string;
+  offerType: ServiceOfferType;
+  discountType: 'percentage' | 'flat' | 'none';
+  discountValue?: number | null;
+  originalPrice?: number | null;
+  offerPrice?: number | null;
+  termsConditions?: string;
+  isRecurring: boolean;
+  recurrenceType?: 'daily' | 'weekly' | 'monthly' | null;
+  startDate: string;
+  endDate: string;
+  status: 'draft' | 'active';
+}
+
+export type ServiceAnalyticsQuery = AnalyticsQuery & { serviceId?: number };
+
+export interface ServiceAnalyticsOverview {
+  range: AnalyticsRange;
+  kpis: KpiItem[];
+  totalServices: number;
+  activeServices: number;
+}
+
+export interface ServiceTopPerformer {
+  id: number;
+  name: string;
+  views: number;
+  saves: number;
+  bookings: number;
+  claims: number;
+  conversion: number | null;
+}
+
+export interface ServicePerformance {
+  bestService: ServiceTopPerformer | null;
+  mostViewedService: ServiceTopPerformer | null;
+  mostSavedService: ServiceTopPerformer | null;
+  mostBookedService: ServiceTopPerformer | null;
+  mostClaimedService: ServiceTopPerformer | null;
+  bestConvertingService: ServiceTopPerformer | null;
+}
+
+export interface ServiceFunnelStage {
+  key: string;
+  label: string;
+  value: number;
+  conversionFromPrevious: number | null;
+}
+
+export interface ServiceOfferPerformanceSplit {
+  promotional: { views: number };
+  normal: { views: number };
+}
+
+export interface ServiceBranchRow {
+  id: number;
+  branchName: string;
+  city: string | null;
+  views: number;
+  bookings: number;
+  claims: number;
+}
+
+export interface ServiceLocationRow {
+  city: string;
+  views: number;
+  bookings: number;
+}
+
+export interface ServiceCustomerInsights {
+  newCustomers: number;
+  customerGrowth: number | null;
+  repeatBookings: number;
+  repeatClaims: number;
+}
+
+export interface ServiceCategoryInsightRow {
+  id: number;
+  name: string;
+  serviceCount: number;
+  views: number;
+  saves: number;
 }

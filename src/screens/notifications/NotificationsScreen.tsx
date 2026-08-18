@@ -9,10 +9,10 @@ import {
   useMarkAllNotificationsRead,
   useDeleteNotification,
 } from '../../hooks/useNotifications';
-import type { MainTabScreenProps } from '../../navigation/types';
+import type { RootStackScreenProps } from '../../navigation/types';
 import type { NotificationItem } from '../../types';
 
-type Props = MainTabScreenProps<'Notifications'>;
+type Props = RootStackScreenProps<'Notifications'>;
 
 const TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   offer_ending: 'time-outline',
@@ -22,6 +22,7 @@ const TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   offer_redeemed: 'checkmark-circle-outline',
   category_offer: 'grid-outline',
   recommended: 'sparkles-outline',
+  SAVED_SERVICE_OFFER_EXPIRING: 'briefcase-outline',
 };
 
 export function NotificationsScreen({ navigation }: Props) {
@@ -38,6 +39,9 @@ export function NotificationsScreen({ navigation }: Props) {
     if (!item.isRead) markRead.mutate(item.id);
     if (item.entityType === 'offer' && item.entityId) {
       navigation.navigate('OfferDetail', { offerId: item.entityId });
+    } else if (item.entityType === 'service_offer' && item.entityId) {
+      // Backend contract: entityId is the service's own id, not the service_offer id.
+      navigation.navigate('ServiceDetail', { serviceId: item.entityId });
     } else if (item.entityType === 'shop' && item.entityId) {
       navigation.navigate('ShopDetail', { shopId: item.entityId });
     }

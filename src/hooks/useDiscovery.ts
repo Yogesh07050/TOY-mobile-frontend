@@ -46,3 +46,24 @@ export function usePopularOffers(limit = 8) {
     queryFn: async () => (await offersApi.listOffers(params)).offers,
   });
 }
+
+export function useUnifiedOffers(params: Omit<discoveryApi.ListUnifiedOffersParams, 'latitude' | 'longitude'> = {}, limit = 10) {
+  const { coords } = useLocationContext();
+  const query = { ...params, latitude: coords?.latitude, longitude: coords?.longitude, limit };
+  return useQuery({
+    queryKey: queryKeys.unifiedOffers(query),
+    queryFn: async () => (await discoveryApi.listUnifiedOffers(query)).listings,
+  });
+}
+
+export function useNearbyListings(params: { type?: 'all' | 'product' | 'service'; limit?: number } = {}) {
+  const { coords } = useLocationContext();
+  const query = coords
+    ? { ...params, latitude: coords.latitude, longitude: coords.longitude, sort: 'nearest' as const }
+    : null;
+  return useQuery({
+    queryKey: queryKeys.nearbyListings(query),
+    queryFn: async () => (await discoveryApi.listUnifiedOffers(query!)).listings,
+    enabled: !!query,
+  });
+}

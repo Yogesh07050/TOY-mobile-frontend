@@ -3,11 +3,12 @@ import { Dimensions, FlatList, Text, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import { Screen, Chip, EmptyState, LoadingView } from '../../components/ui';
-import { OfferCard, ShopCard } from '../../components';
+import { OfferCard, ServiceCard, ShopCard } from '../../components';
 import { useFavoritesList, useToggleFavorite } from '../../hooks/useFavorites';
+import { useSavedServicesList, useToggleSavedService } from '../../hooks/useSavedServices';
 import { useFollowedShops } from '../../hooks/useFollowing';
 import type { MainTabScreenProps } from '../../navigation/types';
-import type { Offer } from '../../types';
+import type { Offer, Service } from '../../types';
 
 type Props = MainTabScreenProps<'Saved'>;
 
@@ -17,19 +18,27 @@ const GAP = 12;
 
 export function SavedScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights } = useTheme();
-  const [tab, setTab] = useState<'offers' | 'shops'>('offers');
+  const [tab, setTab] = useState<'offers' | 'services' | 'shops'>('offers');
   const queryClient = useQueryClient();
 
   const favorites = useFavoritesList();
+  const savedServices = useSavedServicesList();
   const followedShops = useFollowedShops();
   const toggleFavorite = useToggleFavorite();
+  const toggleSavedService = useToggleSavedService();
 
   const offers = favorites.data?.pages.flatMap((p) => p.offers) ?? [];
+  const services = savedServices.data?.pages.flatMap((p) => p.services) ?? [];
   const cardWidth = (Dimensions.get('window').width - H_PADDING * 2 - GAP) / NUM_COLUMNS;
 
   const onToggleSave = (offer: Offer) =>
     toggleFavorite.mutate({ offerId: offer.id, isFavorite: offer.isFavorite }, {
       onSettled: () => queryClient.invalidateQueries({ queryKey: ['favorites'] }),
+    });
+
+  const onToggleSaveService = (service: Service) =>
+    toggleSavedService.mutate({ serviceId: service.id, isSaved: service.isSaved }, {
+      onSettled: () => queryClient.invalidateQueries({ queryKey: ['savedServices'] }),
     });
 
   return (
@@ -38,6 +47,7 @@ export function SavedScreen({ navigation }: Props) {
         <Text style={{ color: colors.text, fontSize: fontSizes.xl, fontWeight: fontWeights.bold }}>Saved</Text>
         <View style={{ flexDirection: 'row', gap: spacing.xs }}>
           <Chip label="Saved Offers" selected={tab === 'offers'} onPress={() => setTab('offers')} />
+          <Chip label="Saved Services" selected={tab === 'services'} onPress={() => setTab('services')} />
           <Chip label="Saved Shops" selected={tab === 'shops'} onPress={() => setTab('shops')} />
         </View>
       </View>
@@ -62,6 +72,30 @@ export function SavedScreen({ navigation }: Props) {
                 width={cardWidth}
                 onPress={() => navigation.navigate('OfferDetail', { offerId: item.id })}
                 onToggleSave={() => onToggleSave(item)}
+              />
+            )}
+          />
+        )
+      ) : tab === 'services' ? (
+        savedServices.isLoading ? (
+          <LoadingView />
+        ) : services.length === 0 ? (
+          <EmptyState icon="briefcase-outline" title="No saved services yet" message="Tap the heart on any service to save it here." />
+        ) : (
+          <FlatList
+            data={services}
+            keyExtractor={(item) => String(item.id)}
+            numColumns={NUM_COLUMNS}
+            contentContainerStyle={{ padding: H_PADDING, gap: GAP }}
+            columnWrapperStyle={{ gap: GAP }}
+            onEndReached={() => savedServices.hasNextPage && savedServices.fetchNextPage()}
+            onEndReachedThreshold={0.4}
+            renderItem={({ item }) => (
+              <ServiceCard
+                service={item}
+                width={cardWidth}
+                onPress={() => navigation.navigate('ServiceDetail', { serviceId: item.id })}
+                onToggleSave={() => onToggleSaveService(item)}
               />
             )}
           />

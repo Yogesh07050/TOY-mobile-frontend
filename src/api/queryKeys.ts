@@ -16,4 +16,9 @@ export const queryKeys = {
   notifications: (params: unknown) => ['notifications', params] as const,
   notificationPreferences: () => ['notificationPreferences'] as const,
   claims: (params: unknown) => ['claims', params] as const,
+  services: (params: unknown) => ['services', params] as const,
+  service: (id: number) => ['service', id] as const,
+  savedServices: (params: unknown) => ['savedServices', params] as const,
+  unifiedOffers: (params: unknown) => ['unifiedOffers', params] as const,
+  nearbyListings: (params: unknown) => ['nearbyListings', params] as const,
 };

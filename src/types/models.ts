@@ -253,6 +253,7 @@ export interface NotificationPreferences {
   favoriteExpiring: boolean;
   offerUpdates: boolean;
   adminAnnouncements: boolean;
+  savedServiceOfferExpiring: boolean;
 }
 
 export interface Review {
@@ -334,4 +335,134 @@ export interface FollowedCategory {
   imageUrl: string | null;
   activeOfferCount: number;
   followedAt: string;
+}
+
+// ---- V4 — Services -----------------------------------------------------
+
+export type PricingType = 'fixed' | 'starting_from' | 'price_on_enquiry';
+export type BookingType = 'walk_in' | 'appointment' | 'both' | 'enquiry_only';
+export type ServiceStatus = 'draft' | 'scheduled' | 'active' | 'paused' | 'expired' | 'deactivated';
+export type ServiceOfferStatus = 'draft' | 'scheduled' | 'active' | 'expired' | 'deactivated';
+export type AvailableDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+export type ServiceSort = 'newest' | 'mostViewed' | 'mostPopular' | 'nearest';
+export type ServiceOfferType = 'percentage' | 'flat' | 'price_drop' | 'other';
+
+export interface ServiceActiveOffer {
+  id: number;
+  offerText: string | null;
+  discountType: 'percentage' | 'flat' | 'none';
+  discountValue: number | null;
+  offerPrice: number | null;
+  endDate: string;
+}
+
+export interface Service {
+  id: number;
+  name: string;
+  description: string | null;
+  pricingType: PricingType;
+  price: number | null;
+  durationMinutes: number | null;
+  durationLabel: string | null;
+  availableDays: AvailableDay[];
+  availableTimeStart: string | null;
+  availableTimeEnd: string | null;
+  homeService: boolean;
+  walkInAvailable: boolean;
+  appointmentRequired: boolean;
+  bookingType: BookingType;
+  serviceArea: string | null;
+  termsConditions: string | null;
+  applicabilityType: 'shop_wide' | 'selected_branches' | 'online';
+  status: ServiceStatus;
+  startDate: string | null;
+  endDate: string | null;
+  imageUrl: string | null;
+  thumbnailUrl: string | null;
+  viewCount: number;
+  clickCount: number;
+  saveCount: number;
+  distanceKm: number | null;
+  locationLabel: string | null;
+  isSaved: boolean;
+  activeOffer?: ServiceActiveOffer | null;
+  createdAt: string;
+  updatedAt: string;
+  shop: OfferShopSummary & { description?: string | null; contactNumber?: string | null };
+  category: OfferCategorySummary | null;
+  subcategory?: { id: number; name: string } | null;
+}
+
+export interface ServiceDetail extends Service {
+  images: OfferImage[];
+  branches: OfferBranch[];
+  branchIds: number[];
+}
+
+export interface ServiceOffer {
+  id: number;
+  serviceId: number;
+  offerText: string | null;
+  offerType: ServiceOfferType;
+  discountType: 'percentage' | 'flat' | 'none';
+  discountValue: number | null;
+  originalPrice: number | null;
+  offerPrice: number | null;
+  termsConditions: string | null;
+  isRecurring: boolean;
+  recurrenceType: 'daily' | 'weekly' | 'monthly' | null;
+  startDate: string;
+  endDate: string;
+  status: ServiceOfferStatus;
+  viewCount: number;
+  claimCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ServiceOfferClaim {
+  id: number;
+  code: string;
+  status: 'claimed' | 'redeemed' | 'expired' | 'cancelled';
+  claimedAt: string;
+  redeemedAt: string | null;
+  serviceOffer: { id: number; offerText: string | null; endDate: string };
+  service: { id: number; name: string };
+  shop: { id: number; name: string };
+  branch: { id: number; name: string } | null;
+}
+
+export interface ServiceBooking {
+  id: number;
+  serviceId: number;
+  userId: number;
+  branchId: number | null;
+  serviceOfferId: number | null;
+  requestedAt: string | null;
+  status: 'requested' | 'confirmed' | 'completed' | 'cancelled';
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UnifiedListing {
+  id: number;
+  sourceType: 'product' | 'service';
+  serviceId: number | null;
+  title: string;
+  offerText: string | null;
+  discountType: 'percentage' | 'flat' | 'none';
+  discountValue: number | null;
+  originalPrice: number | null;
+  finalPrice: number | null;
+  startDate: string;
+  endDate: string;
+  status: string;
+  imageUrl: string | null;
+  distanceKm: number | null;
+  isSaved: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  shop: { id: number; name: string; slug: string; logoUrl: string | null };
+  category: { id: number; name: string; slug: string } | null;
 }

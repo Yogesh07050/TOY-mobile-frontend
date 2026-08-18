@@ -22,6 +22,14 @@ export function AdminCreateScreen({ navigation }: Props) {
       onPress: () => navigation.navigate('OfferForm', undefined),
     },
     {
+      key: 'service',
+      icon: 'briefcase' as const,
+      label: 'Create Service',
+      description: 'Publish a new service for your shop',
+      visible: hasPermission('CREATE_SERVICE'),
+      onPress: () => navigation.navigate('ServiceForm', undefined),
+    },
+    {
       key: 'banner',
       icon: 'image' as const,
       label: 'Create Banner',

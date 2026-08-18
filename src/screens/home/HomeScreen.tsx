@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import { Screen } from '../../components/ui';
-import { SearchBar, LocationSelector, BannerCarousel, OfferRail, SectionHeader, CategoryCard } from '../../components';
+import { SearchBar, LocationSelector, BannerCarousel, OfferRail, SectionHeader, CategoryCard, UnifiedListingCard } from '../../components';
 import { useAuth } from '../../store/AuthContext';
 import { useLocationContext } from '../../services/location/LocationContext';
 import {
@@ -15,14 +15,15 @@ import {
   usePopularOffers,
   useCategories,
   useToggleFavorite,
+  useUnifiedOffers,
 } from '../../hooks';
 import { useOffersList } from '../../hooks/useOffers';
 import { trackBanner, trackEvent } from '../../services/analytics/analyticsService';
 import { getTimeOfDayGreeting } from '../../utils/greeting';
 import type { MainTabScreenProps } from '../../navigation/types';
-import type { Offer, Banner, Category } from '../../types';
+import type { Offer, Banner, Category, UnifiedListing } from '../../types';
 
-type Props = MainTabScreenProps<'Home'>;
+type Props = MainTabScreenProps<'Offers'>;
 
 export function HomeScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights } = useTheme();
@@ -38,6 +39,7 @@ export function HomeScreen({ navigation }: Props) {
   const popular = usePopularOffers();
   const categories = useCategories();
   const toggleFavorite = useToggleFavorite();
+  const unifiedOffers = useUnifiedOffers({}, 10);
 
   const refreshing =
     banners.isRefetching || endingSoon.isRefetching || nearby.isRefetching || recommended.isRefetching || popular.isRefetching;
@@ -69,6 +71,13 @@ export function HomeScreen({ navigation }: Props) {
     toggleFavorite.mutate({ offerId: offer.id, isFavorite: offer.isFavorite }, {
       onSettled: () => queryClient.invalidateQueries({ queryKey: ['favorites'] }),
     });
+  const openUnifiedListing = (listing: UnifiedListing) => {
+    if (listing.sourceType === 'product') {
+      navigation.navigate('OfferDetail', { offerId: listing.id });
+    } else if (listing.serviceId != null) {
+      navigation.navigate('ServiceDetail', { serviceId: listing.serviceId });
+    }
+  };
 
   return (
     <Screen edges={['top', 'left', 'right']}>
@@ -130,6 +139,17 @@ export function HomeScreen({ navigation }: Props) {
           </View>
         ) : null}
 
+        {(unifiedOffers.data?.length ?? 0) > 0 ? (
+          <View style={{ marginBottom: spacing.lg }}>
+            <SectionHeader title="Offers & Services" subtitle="Deals from products and services alike" />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: spacing.md, gap: spacing.sm }}>
+              {(unifiedOffers.data ?? []).map((listing) => (
+                <UnifiedListingCard key={`${listing.sourceType}-${listing.id}`} listing={listing} width={200} onPress={openUnifiedListing} />
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+
         <OfferRail
           title="Ending Soon"
           subtitle="Grab these before they're gone"
@@ -187,20 +207,7 @@ export function HomeScreen({ navigation }: Props) {
           </ScrollView>
         </View>
 
-        <Pressable
-          onPress={() => navigation.navigate('Explore')}
-          style={{
-            marginHorizontal: spacing.md,
-            marginBottom: spacing.xxl,
-            padding: spacing.md,
-            borderRadius: 14,
-            borderWidth: 1,
-            borderColor: colors.border,
-            alignItems: 'center',
-          }}
-        >
-          <Text style={{ color: colors.brand, fontWeight: fontWeights.semibold }}>Explore More Offers →</Text>
-        </Pressable>
+        <View style={{ height: spacing.xxl }} />
       </ScrollView>
     </Screen>
   );

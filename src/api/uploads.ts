@@ -1,7 +1,7 @@
 import { apiClient } from './client';
 import type { ApiSuccess, UploadResult } from '../types';
 
-type UploadType = 'offers' | 'shops' | 'categories' | 'banners' | 'avatars';
+type UploadType = 'offers' | 'shops' | 'categories' | 'banners' | 'avatars' | 'services';
 
 async function uploadImage(type: UploadType, fileUri: string, fileName: string, mimeType: string): Promise<UploadResult> {
   const form = new FormData();
@@ -24,4 +24,8 @@ export async function uploadOfferImage(fileUri: string, fileName = 'offer.jpg', 
 
 export async function uploadBannerImage(fileUri: string, fileName = 'banner.jpg', mimeType = 'image/jpeg'): Promise<UploadResult> {
   return uploadImage('banners', fileUri, fileName, mimeType);
+}
+
+export async function uploadServiceImage(fileUri: string, fileName = 'service.jpg', mimeType = 'image/jpeg'): Promise<UploadResult> {
+  return uploadImage('services', fileUri, fileName, mimeType);
 }
