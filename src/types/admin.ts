@@ -133,6 +133,7 @@ export type PlanKey = 'FREE' | 'BUSINESS' | 'PREMIUM';
 
 export interface PlanLimits {
   offersPerMonth: number | null;
+  servicesPerMonth?: number | null;
   branches: number | null;
   categories: number | null;
   banners: number | null;
@@ -157,6 +158,49 @@ export interface PlanCatalogueResponse {
   plans: PlanCatalogueEntry[];
   featureLabels: Record<string, string>;
   comparison: Array<{ label: string; values: [string | number, string | number, string | number] }>;
+  /** Whether checkout can actually be opened, and with which gateway. */
+  payment?: PaymentConfig;
+}
+
+export interface PaymentConfig {
+  gateway: 'razorpay';
+  enabled: boolean;
+  keyId: string | null;
+  supportsAutopay: boolean;
+  methods: string[];
+}
+
+/** Subscription lifecycle states (payments spec §9). */
+export type SubscriptionStatus =
+  | 'created'
+  | 'active'
+  | 'past_due'
+  | 'paused'
+  | 'cancelled'
+  | 'expired';
+
+/**
+ * A feature the Super Admin granted independently of the plan (§11A).
+ * Never created or modified from the app - it is read-only to a merchant.
+ */
+export interface FeatureOverride {
+  id: number;
+  shopId: number;
+  shopName?: string | null;
+  adminUserId?: number | null;
+  adminName?: string | null;
+  featureKey: string;
+  featureName: string;
+  category: string;
+  kind: 'feature' | 'limit';
+  status: 'active' | 'revoked' | 'expired';
+  startsAt: string | null;
+  expiresAt: string | null;
+  isPermanent: boolean;
+  reason: string | null;
+  grantedByName?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ShopEntitlements {
@@ -166,19 +210,43 @@ export interface ShopEntitlements {
   tagline: string;
   price: number;
   currency: string;
-  status: string;
+  status: SubscriptionStatus;
   billingCycle: 'monthly' | 'yearly';
   paymentStatus: string;
   startedAt: string | null;
   renewsAt: string | null;
   cancelledAt: string | null;
   limits: PlanLimits;
+  /** Effective set: what the plan gives plus any Super Admin grants (§11K). */
   features: string[];
+  /** What the plan alone gives, so the UI can say where access came from (§11G). */
+  planFeatures?: string[];
+  overrideFeatures?: string[];
+  /** Active Super Admin grants with their expiry, for the §11N panel. */
+  specialAccess?: FeatureOverride[];
   profile: string;
   visibility: string;
+  // ---- Billing state (§14) ----
+  gateway?: string | null;
+  gatewaySubscriptionId?: string | null;
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
+  nextBillingDate?: string | null;
+  cancelAtPeriodEnd?: boolean;
+  pendingPlan?: PlanKey | null;
+  graceUntil?: string | null;
+  autopayEnabled?: boolean;
+  paymentMethod?: string | null;
+  lastPaymentAt?: string | null;
+  lastFailureReason?: string | null;
+  /** True when the paid features are in force right now. */
+  entitled?: boolean;
+  /** Present on the cancel response: when the current benefits run out. */
+  activeUntil?: string | null;
   usage: {
     period: string;
     offersThisMonth: number;
+    servicesThisMonth?: number;
     branches: number;
     categories: number;
     banners: number;
@@ -186,10 +254,81 @@ export interface ShopEntitlements {
   };
   remaining: {
     offersThisMonth: number | null;
+    servicesThisMonth?: number | null;
     branches: number | null;
     categories: number | null;
     banners: number | null;
   };
+}
+
+// ---- Payments (§3, §15, §16) -----------------------------------------------
+
+/** Everything the app needs to open Razorpay Checkout for a plan purchase. */
+export interface CheckoutSession {
+  gateway: 'razorpay';
+  keyId: string;
+  subscriptionId: string;
+  /** Razorpay's hosted checkout page - what the mobile app opens (§4). */
+  shortUrl: string | null;
+  status: string;
+  plan: PlanKey;
+  planName: string;
+  amount: number;
+  currency: string;
+  recurring: boolean;
+  previousPlan: PlanKey;
+  prefill: { name: string | null; email: string | null; contact: string | null };
+}
+
+export type PaymentStatus =
+  | 'CREATED'
+  | 'PENDING'
+  | 'AUTHORIZED'
+  | 'CAPTURED'
+  | 'FAILED'
+  | 'REFUNDED'
+  | 'PARTIALLY_REFUNDED'
+  | 'CANCELLED';
+
+export interface PaymentTransaction {
+  id: number;
+  shopId: number;
+  plan: PlanKey;
+  planName: string;
+  orderId: string | null;
+  paymentId: string | null;
+  amount: number;
+  amountRefunded: number;
+  currency: string;
+  /** 'upi' | 'card' | 'netbanking' | 'wallet' - never a credential (§6). */
+  paymentMethod: string | null;
+  /** Safe descriptor Razorpay echoes back, e.g. "Visa ****4242". */
+  methodDetail: string | null;
+  status: PaymentStatus;
+  failureReason: string | null;
+  paidAt: string | null;
+  createdAt: string;
+}
+
+export interface SubscriptionInvoice {
+  id: number;
+  number: string;
+  reference: string;
+  plan: PlanKey;
+  planName: string;
+  description: string;
+  periodStart: string | null;
+  periodEnd: string | null;
+  subtotal: number;
+  taxAmount: number;
+  taxPercent: number;
+  amount: number;
+  total: number;
+  currency: string;
+  status: 'issued' | 'paid' | 'void' | 'refunded';
+  billingName: string | null;
+  billingAddress: string | null;
+  issuedAt: string;
 }
 
 export interface PlanUpgradeRequiredDetails {

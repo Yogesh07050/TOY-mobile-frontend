@@ -43,3 +43,16 @@ export function formatOfferHeadline(offer: Pick<Offer, 'offerText' | 'offerType'
   }
   return 'Special Offer';
 }
+
+/** Short, readable date for billing and expiry lines: "16 Aug 2026". */
+export function formatDate(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/** Rupee amount with Indian digit grouping: "₹2,500". */
+export function formatRupees(amount: number): string {
+  return `₹${Number(amount).toLocaleString('en-IN')}`;
+}

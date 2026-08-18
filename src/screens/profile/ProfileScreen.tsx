@@ -29,6 +29,9 @@ export function ProfileScreen({ navigation }: Props) {
   const accountRows: Row[] = [
     { icon: 'person-outline', label: 'Edit Profile', onPress: () => navigation.navigate('EditProfile') },
     { icon: 'lock-closed-outline', label: 'Change Password', onPress: () => navigation.navigate('ChangePassword') },
+    // §28: the customer stays signed in on every device until they end a
+    // session, so they need somewhere to see and end them.
+    { icon: 'phone-portrait-outline', label: 'Logged-in Devices', onPress: () => navigation.navigate('Devices') },
     { icon: 'location-outline', label: 'Preferred Location', onPress: () => navigation.navigate('SelectLocation') },
     { icon: 'options-outline', label: 'Preferences', onPress: () => navigation.navigate('EditPreferences') },
   ];

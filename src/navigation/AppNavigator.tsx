@@ -16,6 +16,7 @@ import { NotificationPreferencesScreen } from '../screens/notifications/Notifica
 import { SelectLocationScreen } from '../screens/profile/SelectLocationScreen';
 import { EditPreferencesScreen } from '../screens/profile/EditPreferencesScreen';
 import { ThemeSettingsScreen } from '../screens/profile/ThemeSettingsScreen';
+import { DevicesScreen } from '../screens/profile/DevicesScreen';
 import type { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -39,6 +40,7 @@ export function AppNavigator() {
       <Stack.Screen name="SelectLocation" component={SelectLocationScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="EditPreferences" component={EditPreferencesScreen} />
       <Stack.Screen name="ThemeSettings" component={ThemeSettingsScreen} />
+      <Stack.Screen name="Devices" component={DevicesScreen} />
     </Stack.Navigator>
   );
 }

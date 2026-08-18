@@ -34,6 +34,7 @@ export type RootStackParamList = {
   SelectLocation: undefined;
   EditPreferences: undefined;
   ThemeSettings: undefined;
+  Devices: undefined;
 };
 
 export type MainTabScreenProps<T extends keyof MainTabParamList> = CompositeScreenProps<
@@ -67,6 +68,7 @@ export type AdminStackParamList = {
   BannerList: undefined;
   BannerForm: { bannerId?: number } | undefined;
   Subscription: undefined;
+  BillingHistory: undefined;
   AnalyticsDetail: { dashboard: 'overview' | 'offerPerformance' | 'funnel' | 'locations' | 'branches' };
   AdminServices: undefined;
   ServiceForm: { serviceId?: number } | undefined;
@@ -76,6 +78,7 @@ export type AdminStackParamList = {
   EditProfile: undefined;
   ChangePassword: undefined;
   ThemeSettings: undefined;
+  Devices: undefined;
 };
 
 export type AdminTabScreenProps<T extends keyof AdminTabParamList> = CompositeScreenProps<

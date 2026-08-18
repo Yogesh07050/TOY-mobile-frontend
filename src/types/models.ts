@@ -41,7 +41,29 @@ export interface AuthResult {
   user: User;
   accessToken: string;
   refreshToken: string;
+  /** Seconds until the access token expires. */
   expiresIn: number;
+  /** Seconds until the refresh token expires - the real "stay logged in" window. */
+  refreshExpiresIn?: number;
+  /** Identifies this device's session family, for the session list (§27). */
+  familyId?: string;
+}
+
+/**
+ * One signed-in device (§28). The id is the refresh-token family, so
+ * revoking it ends that device's session without touching the others.
+ */
+export interface DeviceSession {
+  id: string;
+  deviceType: 'mobile' | 'tablet' | 'desktop' | 'web' | 'unknown';
+  deviceName: string | null;
+  platform: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+  lastUsedAt: string;
+  expiresAt: string;
+  /** True for the session making the request - never offered for revoke. */
+  current: boolean;
 }
 
 export type OfferType = 'percentage' | 'flat' | 'buy_x_get_y' | 'price_drop' | 'up_to' | 'other';

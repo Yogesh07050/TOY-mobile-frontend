@@ -53,6 +53,7 @@ export function AdminProfileScreen({ navigation }: Props) {
   const accountRows: Row[] = [
     { icon: 'person-outline', label: 'Edit Profile', onPress: () => navigation.navigate('EditProfile') },
     { icon: 'lock-closed-outline', label: 'Change Password', onPress: () => navigation.navigate('ChangePassword') },
+    { icon: 'phone-portrait-outline', label: 'Logged-in Devices', onPress: () => navigation.navigate('Devices') },
     { icon: 'color-palette-outline', label: 'Theme', onPress: () => navigation.navigate('ThemeSettings') },
   ];
 

@@ -1,5 +1,6 @@
 import { apiClient } from './client';
-import type { ApiSuccess, AuthResult, User } from '../types';
+import { getTokens } from '../services/auth/tokenStorage';
+import type { ApiSuccess, AuthResult, DeviceSession, User } from '../types';
 
 export interface RegisterPayload {
   name: string;
@@ -26,8 +27,16 @@ export async function login(payload: LoginPayload): Promise<AuthResult> {
   return res.data.data;
 }
 
+/**
+ * Ends *this* device's session (§25).
+ *
+ * The refresh token has to be sent explicitly: React Native has no cookie to
+ * carry it, and without it the backend cannot tell which device is signing out,
+ * so it would end every session on the account (§27, §28).
+ */
 export async function logout(): Promise<void> {
-  await apiClient.post('/auth/logout');
+  const tokens = await getTokens();
+  await apiClient.post('/auth/logout', tokens?.refreshToken ? { refreshToken: tokens.refreshToken } : {});
 }
 
 export async function forgotPassword(email: string): Promise<{ message: string; delivered: boolean }> {
@@ -68,5 +77,24 @@ export async function resendVerification(email: string): Promise<{ message: stri
 
 export async function fetchMe(): Promise<User> {
   const res = await apiClient.get<ApiSuccess<User>>('/auth/me');
+  return res.data.data;
+}
+
+// ---- Device sessions (§28) --------------------------------------------------
+
+export async function fetchSessions(): Promise<DeviceSession[]> {
+  const res = await apiClient.get<ApiSuccess<DeviceSession[]>>('/auth/sessions');
+  return res.data.data;
+}
+
+/** Ends one device's session. The backend refuses ids that are not the caller's. */
+export async function revokeSession(sessionId: string): Promise<{ revoked: number }> {
+  const res = await apiClient.delete<ApiSuccess<{ revoked: number }>>(`/auth/sessions/${sessionId}`);
+  return res.data.data;
+}
+
+/** "Log out other devices" - this one stays signed in (§28). */
+export async function revokeOtherSessions(): Promise<{ revoked: number }> {
+  const res = await apiClient.post<ApiSuccess<{ revoked: number }>>('/auth/sessions/revoke-others');
   return res.data.data;
 }

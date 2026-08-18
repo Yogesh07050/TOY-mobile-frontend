@@ -20,8 +20,10 @@ export function AdminDashboardScreen({ navigation }: Props) {
   const { shops, currentShop, currentShopId, setCurrentShopId } = useShopAdmin();
   const entitlements = useShopEntitlements(currentShopId);
   const overview = useOverviewAnalytics({ shopId: currentShopId ?? undefined, preset: 'last30' });
-  const isPremium = entitlements.data?.plan === 'PREMIUM';
-  const premiumOverview = usePremiumOverview({ shopId: currentShopId ?? undefined, preset: 'last30' }, isPremium);
+  // Asks about the entitlement rather than the plan name: a Super Admin grant
+  // can give a Free shop advanced analytics without changing its plan (§11K).
+  const hasAdvancedAnalytics = entitlements.data?.features.includes('ANALYTICS_ADVANCED') ?? false;
+  const premiumOverview = usePremiumOverview({ shopId: currentShopId ?? undefined, preset: 'last30' }, hasAdvancedAnalytics);
 
   if (!currentShopId) {
     return (
@@ -70,7 +72,7 @@ export function AdminDashboardScreen({ navigation }: Props) {
           </ScrollView>
         ) : null}
 
-        {isPremium && premiumOverview.data ? (
+        {hasAdvancedAnalytics && premiumOverview.data ? (
           <View
             style={{
               backgroundColor: colors.brandTint,

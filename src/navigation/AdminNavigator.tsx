@@ -7,6 +7,7 @@ import { BranchFormScreen } from '../screens/admin/branches/BranchFormScreen';
 import { BannerListScreen } from '../screens/admin/banners/BannerListScreen';
 import { BannerFormScreen } from '../screens/admin/banners/BannerFormScreen';
 import { SubscriptionScreen } from '../screens/admin/subscription/SubscriptionScreen';
+import { BillingHistoryScreen } from '../screens/admin/subscription/BillingHistoryScreen';
 import { AnalyticsDetailScreen } from '../screens/admin/analytics/AnalyticsDetailScreen';
 import { AdminServicesScreen } from '../screens/admin/services/AdminServicesScreen';
 import { ServiceFormScreen } from '../screens/admin/services/ServiceFormScreen';
@@ -16,6 +17,7 @@ import { ServiceAnalyticsScreen } from '../screens/admin/services/ServiceAnalyti
 import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import { ChangePasswordScreen } from '../screens/profile/ChangePasswordScreen';
 import { ThemeSettingsScreen } from '../screens/profile/ThemeSettingsScreen';
+import { DevicesScreen } from '../screens/profile/DevicesScreen';
 import type { AdminStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<AdminStackParamList>();
@@ -30,6 +32,7 @@ export function AdminNavigator() {
       <Stack.Screen name="BannerList" component={BannerListScreen} />
       <Stack.Screen name="BannerForm" component={BannerFormScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="Subscription" component={SubscriptionScreen} />
+      <Stack.Screen name="BillingHistory" component={BillingHistoryScreen} />
       <Stack.Screen name="AnalyticsDetail" component={AnalyticsDetailScreen} />
       <Stack.Screen name="AdminServices" component={AdminServicesScreen} />
       <Stack.Screen name="ServiceForm" component={ServiceFormScreen} />
@@ -39,6 +42,7 @@ export function AdminNavigator() {
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="ThemeSettings" component={ThemeSettingsScreen} />
+      <Stack.Screen name="Devices" component={DevicesScreen} />
     </Stack.Navigator>
   );
 }
