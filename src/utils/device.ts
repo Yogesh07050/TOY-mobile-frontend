@@ -13,7 +13,7 @@ function deviceName(): string {
   if (named) return named;
   if (Platform.OS === 'ios') return 'iPhone';
   if (Platform.OS === 'android') return 'Android device';
-  return 'Offers App';
+  return 'OffersOffer';
 }
 
 function deviceType(): 'mobile' | 'tablet' | 'web' {

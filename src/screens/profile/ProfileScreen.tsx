@@ -61,7 +61,7 @@ export function ProfileScreen({ navigation }: Props) {
         <RowGroup title="Preferences" rows={preferenceRows} />
         <RowGroup rows={otherRows} />
 
-        <Text style={{ color: colors.textSubtle, fontSize: fontSizes.xs, textAlign: 'center' }}>Offers App · v1.0.0</Text>
+        <Text style={{ color: colors.textSubtle, fontSize: fontSizes.xs, textAlign: 'center' }}>OffersOffer · v1.0.0</Text>
       </ScrollView>
     </Screen>
   );

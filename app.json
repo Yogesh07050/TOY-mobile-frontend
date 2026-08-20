@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Offers App",
+    "name": "OffersOffer",
     "slug": "TOY-mobile-frontend",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,7 +11,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.toy.offersapp",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Offers App uses your location to show offers and shops near you.",
+        "NSLocationWhenInUseUsageDescription": "OffersOffer uses your location to show offers and shops near you.",
         "UIBackgroundModes": []
       },
       "config": {
@@ -21,7 +21,7 @@
     "android": {
       "package": "com.toy.offersapp",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FDF6E3",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -42,7 +42,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Offers App uses your location to show offers and shops near you."
+          "locationWhenInUsePermission": "OffersOffer uses your location to show offers and shops near you."
         }
       ],
       [
@@ -55,7 +55,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Offers App uses your photos to set a profile picture."
+          "photosPermission": "OffersOffer uses your photos to set a profile picture."
         }
       ]
     ]

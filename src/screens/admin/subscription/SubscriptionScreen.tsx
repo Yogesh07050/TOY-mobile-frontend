@@ -265,7 +265,7 @@ export function SubscriptionScreen({ navigation }: Props) {
               <Text style={{ color: colors.text, fontWeight: fontWeights.bold }}>Special access</Text>
             </View>
             <Text style={{ color: colors.textMuted, fontSize: fontSizes.xs }}>
-              Granted by the Offers App team, independently of your plan.
+              Granted by the OffersOffer team, independently of your plan.
             </Text>
             {specialAccess.map((entry) => (
               <View key={entry.featureKey} style={{ gap: 2, marginTop: spacing.xxs }}>

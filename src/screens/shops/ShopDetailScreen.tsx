@@ -43,7 +43,7 @@ export function ShopDetailScreen({ route, navigation }: Props) {
   const nearestBranch = [...shop.branches].sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity))[0];
 
   const onShare = async () => {
-    await Share.share({ message: `${shop.name} on Offers App\n${shopDeepLink(shop.id)}` });
+    await Share.share({ message: `${shop.name} on OffersOffer\n${shopDeepLink(shop.id)}` });
   };
   const onToggleSave = (offer: Offer) =>
     toggleFavorite.mutate({ offerId: offer.id, isFavorite: offer.isFavorite }, {
