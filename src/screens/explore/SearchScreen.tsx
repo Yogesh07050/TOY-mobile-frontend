@@ -8,6 +8,7 @@ import { SearchBar, OfferCard } from '../../components';
 import { useOffersList } from '../../hooks/useOffers';
 import { useCategories } from '../../hooks/useCategories';
 import { useToggleFavorite } from '../../hooks/useFavorites';
+import { useAuthPrompt } from '../../store/AuthPromptContext';
 import { useLocationContext } from '../../services/location/LocationContext';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { trackEvent } from '../../services/analytics/analyticsService';
@@ -51,6 +52,7 @@ export function SearchScreen({ route, navigation }: Props) {
   const queryClient = useQueryClient();
   const categories = useCategories();
   const toggleFavorite = useToggleFavorite();
+  const prompt = useAuthPrompt();
 
   const [query, setQuery] = useState(route.params?.query ?? '');
   const [showFilters, setShowFilters] = useState(false);
@@ -86,10 +88,13 @@ export function SearchScreen({ route, navigation }: Props) {
   const offers = results.data?.pages.flatMap((p) => p.offers) ?? [];
   const cardWidth = (Dimensions.get('window').width - H_PADDING * 2 - GAP) / NUM_COLUMNS;
 
-  const onToggleSave = (offer: Offer) =>
+  // §5: browsing and filtering stay open; only the save asks for an account.
+  const onToggleSave = (offer: Offer) => {
+    if (!prompt.require('save-offer', () => onToggleSave(offer))) return;
     toggleFavorite.mutate({ offerId: offer.id, isFavorite: offer.isFavorite }, {
       onSettled: () => queryClient.invalidateQueries({ queryKey: ['favorites'] }),
     });
+  };
 
   return (
     <Screen>

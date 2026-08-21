@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../theme';
 import { Screen, TextField, Button } from '../../components/ui';
 import { forgotPassword } from '../../api/auth';
 import { getApiErrorMessage } from '../../api/client';
 import { isValidEmail } from '../../utils/validators';
-import type { AuthStackParamList } from '../../navigation/types';
+import type { AuthScreenProps } from '../../navigation/types';
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
+type Props = AuthScreenProps<'ForgotPassword'>;
 
 export function ForgotPasswordScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights } = useTheme();

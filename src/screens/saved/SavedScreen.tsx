@@ -4,6 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import { Screen, Chip, EmptyState, LoadingView } from '../../components/ui';
 import { OfferCard, ServiceCard, ShopCard } from '../../components';
+import { GuestGate } from '../../components/GuestGate';
+import { useAuth } from '../../store/AuthContext';
 import { useFavoritesList, useToggleFavorite } from '../../hooks/useFavorites';
 import { useSavedServicesList, useToggleSavedService } from '../../hooks/useSavedServices';
 import { useFollowedShops } from '../../hooks/useFollowing';
@@ -20,10 +22,13 @@ export function SavedScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights } = useTheme();
   const [tab, setTab] = useState<'offers' | 'services' | 'shops'>('offers');
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
 
-  const favorites = useFavoritesList();
-  const savedServices = useSavedServicesList();
-  const followedShops = useFollowedShops();
+  // §22: the tab is reachable for a guest, but every query behind it is an
+  // authenticated endpoint (§25), so none of them are allowed to fire.
+  const favorites = useFavoritesList(undefined, isAuthenticated);
+  const savedServices = useSavedServicesList(undefined, isAuthenticated);
+  const followedShops = useFollowedShops(isAuthenticated);
   const toggleFavorite = useToggleFavorite();
   const toggleSavedService = useToggleSavedService();
 
@@ -40,6 +45,19 @@ export function SavedScreen({ navigation }: Props) {
     toggleSavedService.mutate({ serviceId: service.id, isSaved: service.isSaved }, {
       onSettled: () => queryClient.invalidateQueries({ queryKey: ['savedServices'] }),
     });
+
+  if (!isAuthenticated) {
+    return (
+      <Screen>
+        <GuestGate
+          icon="heart-outline"
+          title="Save your favorite offers"
+          message="Log in or sign up to save offers, services and receive expiry reminders."
+          browseHint="Offers, Services and Near Me stay open without an account."
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen>

@@ -10,6 +10,7 @@ import { useShop } from '../../hooks/useShops';
 import { useOffersList } from '../../hooks/useOffers';
 import { useToggleFavorite } from '../../hooks/useFavorites';
 import { useToggleShopFollow } from '../../hooks/useFollowing';
+import { useAuthPrompt } from '../../store/AuthPromptContext';
 import { useLocationContext } from '../../services/location/LocationContext';
 import { formatDistance } from '../../utils/format';
 import { shopDeepLink, openDirections } from '../../utils/links';
@@ -23,6 +24,7 @@ export function ShopDetailScreen({ route, navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights, radii } = useTheme();
   const { coords } = useLocationContext();
   const queryClient = useQueryClient();
+  const prompt = useAuthPrompt();
   const screenWidth = Dimensions.get('window').width;
 
   const { data: shop, isLoading, isError } = useShop(shopId, coords ?? undefined);
@@ -45,10 +47,18 @@ export function ShopDetailScreen({ route, navigation }: Props) {
   const onShare = async () => {
     await Share.share({ message: `${shop.name} on OffersOffer\n${shopDeepLink(shop.id)}` });
   };
-  const onToggleSave = (offer: Offer) =>
+  const onToggleSave = (offer: Offer) => {
+    if (!prompt.require('save-offer', () => onToggleSave(offer))) return;
     toggleFavorite.mutate({ offerId: offer.id, isFavorite: offer.isFavorite }, {
       onSettled: () => queryClient.invalidateQueries({ queryKey: ['favorites'] }),
     });
+  };
+
+  /** §15: "Following a shop requires authentication" - the rest of the page does not. */
+  const onToggleFollow = () => {
+    if (!prompt.require('follow-shop', onToggleFollow)) return;
+    toggleFollow.mutate({ shopId: shop.id, isFollowing: !!shop.isFollowing });
+  };
 
   const offerList = offers.data?.pages.flatMap((p) => p.offers) ?? [];
 
@@ -105,7 +115,7 @@ export function ShopDetailScreen({ route, navigation }: Props) {
               label={shop.isFollowing ? 'Following' : 'Save Shop'}
               variant={shop.isFollowing ? 'secondary' : 'primary'}
               icon={<Ionicons name={shop.isFollowing ? 'checkmark' : 'heart-outline'} size={16} color={shop.isFollowing ? colors.text : colors.textOnBrand} />}
-              onPress={() => toggleFollow.mutate({ shopId: shop.id, isFollowing: !!shop.isFollowing })}
+              onPress={onToggleFollow}
               style={{ flex: 1 }}
             />
             <Button label="Share" variant="secondary" icon={<Ionicons name="share-social-outline" size={16} color={colors.text} />} onPress={onShare} />

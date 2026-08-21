@@ -3,6 +3,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 export type AuthStackParamList = {
+  Welcome: undefined;
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
@@ -19,6 +20,12 @@ export type MainTabParamList = {
 
 export type RootStackParamList = {
   MainTabs: undefined;
+  // Guest browsing §19/§21: a guest is already inside the app, so the auth
+  // screens have to be reachable from it rather than only before it.
+  Login: undefined;
+  Register: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { token?: string } | undefined;
   OfferDetail: { offerId: number };
   ServiceDetail: { serviceId: number };
   ShopDetail: { shopId: number | string };
@@ -48,6 +55,24 @@ export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeSta
  * both the customer RootStack and the AdminStack — they only ever call goBack(). */
 export interface GoBackScreenProps {
   navigation: { goBack: () => void };
+}
+
+/**
+ * Structural nav prop for the authentication screens.
+ *
+ * They now live in two stacks: the pre-app AuthStack a first launch sees (§20),
+ * and the RootStack, where a guest already inside the app can raise them as a
+ * modal (§19). Both stacks carry the same four keys, which is all these screens
+ * ever navigate between — so a structural type keeps one component working in
+ * both places without casting.
+ */
+export interface AuthScreenProps<T extends keyof AuthStackParamList = 'Login'> {
+  navigation: {
+    navigate: (screen: 'Login' | 'Register' | 'ForgotPassword') => void;
+    goBack: () => void;
+    canGoBack: () => boolean;
+  };
+  route?: { params?: AuthStackParamList[T] };
 }
 
 // ---- Shop Admin (V3) --------------------------------------------------------

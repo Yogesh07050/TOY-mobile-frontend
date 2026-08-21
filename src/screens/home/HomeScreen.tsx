@@ -6,6 +6,7 @@ import { useTheme } from '../../theme';
 import { Screen } from '../../components/ui';
 import { SearchBar, LocationSelector, BannerCarousel, OfferRail, SectionHeader, CategoryCard, UnifiedListingCard } from '../../components';
 import { useAuth } from '../../store/AuthContext';
+import { useAuthPrompt } from '../../store/AuthPromptContext';
 import { useLocationContext } from '../../services/location/LocationContext';
 import {
   useFeaturedBanners,
@@ -27,7 +28,8 @@ type Props = MainTabScreenProps<'Offers'>;
 
 export function HomeScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights } = useTheme();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const prompt = useAuthPrompt();
   const { permissionStatus, requestPermission } = useLocationContext();
   const queryClient = useQueryClient();
 
@@ -35,7 +37,12 @@ export function HomeScreen({ navigation }: Props) {
   const endingSoon = useEndingSoonOffers();
   const nearby = useNearbyOffers();
   const recommended = useRecommendedOffers();
-  const favoriteShopOffers = useOffersList({ following: true, sort: 'newest', limit: 10 });
+  // "From your favorite shops" needs followed shops, which needs an account
+  // (§25) - so the request is not made for a guest and the rail is hidden.
+  const favoriteShopOffers = useOffersList(
+    { following: true, sort: 'newest', limit: 10 },
+    isAuthenticated,
+  );
   const popular = usePopularOffers();
   const categories = useCategories();
   const toggleFavorite = useToggleFavorite();
@@ -67,10 +74,16 @@ export function HomeScreen({ navigation }: Props) {
     trackEvent({ event: 'CATEGORY_VIEW', categoryId: category.id });
     navigation.navigate('CategoryOffers', { categoryId: category.id, categoryName: category.name });
   };
-  const onToggleSave = (offer: Offer) =>
+  /**
+   * §5/§7: the heart never redirects a guest. It raises the sheet over the rail
+   * they are already scrolling, and the save runs itself once they are in.
+   */
+  const onToggleSave = (offer: Offer) => {
+    if (!prompt.require('save-offer', () => onToggleSave(offer))) return;
     toggleFavorite.mutate({ offerId: offer.id, isFavorite: offer.isFavorite }, {
       onSettled: () => queryClient.invalidateQueries({ queryKey: ['favorites'] }),
     });
+  };
   const openUnifiedListing = (listing: UnifiedListing) => {
     if (listing.sourceType === 'product') {
       navigation.navigate('OfferDetail', { offerId: listing.id });
@@ -96,7 +109,11 @@ export function HomeScreen({ navigation }: Props) {
               </Text>
             </View>
             <Pressable
-              onPress={() => navigation.navigate('Notifications')}
+              onPress={() => {
+                if (prompt.require('notifications', () => navigation.navigate('Notifications'))) {
+                  navigation.navigate('Notifications');
+                }
+              }}
               hitSlop={8}
               style={{ padding: spacing.xxs }}
             >
@@ -172,23 +189,32 @@ export function HomeScreen({ navigation }: Props) {
           />
         ) : null}
 
+        {/*
+          §11/§12: the ranking behind this rail is the same call either way, but
+          what feeds it is not. A signed-in customer's comes from their saves,
+          follows and history; a guest's comes from location, trending and
+          freshness. Calling a guest's "Recommended For You" would claim a
+          personalisation there is no account to base it on.
+        */}
         <OfferRail
-          title="Recommended For You"
-          subtitle={recommended.data?.[0]?.reason}
+          title={isAuthenticated ? 'Recommended For You' : 'Popular Near You'}
+          subtitle={isAuthenticated ? recommended.data?.[0]?.reason : 'Trending with shoppers nearby'}
           offers={recommended.data ?? []}
           loading={recommended.isLoading}
           onOfferPress={openRecommendedOffer}
           onToggleSave={onToggleSave}
         />
 
-        <OfferRail
-          title="From Your Favorite Shops"
-          subtitle="New offers from shops and categories you follow"
-          offers={favoriteShopOffers.data?.pages[0]?.offers ?? []}
-          loading={favoriteShopOffers.isLoading}
-          onOfferPress={openOffer}
-          onToggleSave={onToggleSave}
-        />
+        {isAuthenticated ? (
+          <OfferRail
+            title="From Your Favorite Shops"
+            subtitle="New offers from shops and categories you follow"
+            offers={favoriteShopOffers.data?.pages[0]?.offers ?? []}
+            loading={favoriteShopOffers.isLoading}
+            onOfferPress={openOffer}
+            onToggleSave={onToggleSave}
+          />
+        ) : null}
 
         <OfferRail
           title="Popular Offers"
@@ -197,6 +223,34 @@ export function HomeScreen({ navigation }: Props) {
           onOfferPress={openOffer}
           onToggleSave={onToggleSave}
         />
+
+        {!isAuthenticated ? (
+          <View
+            style={{
+              marginHorizontal: spacing.md,
+              marginBottom: spacing.lg,
+              padding: spacing.md,
+              borderRadius: 16,
+              backgroundColor: colors.surface,
+              borderWidth: 1,
+              borderColor: colors.border,
+              alignItems: 'center',
+              gap: spacing.xxs,
+            }}
+          >
+            <Text style={{ color: colors.text, fontSize: fontSizes.lg, fontWeight: fontWeights.bold }}>
+              ✨ Make Offers App personal
+            </Text>
+            <Text style={{ color: colors.textMuted, fontSize: fontSizes.sm, textAlign: 'center' }}>
+              Get recommendations based on what you like, and hear before an offer expires.
+            </Text>
+            <Pressable onPress={() => prompt.open('generic')} style={{ marginTop: spacing.xs }}>
+              <Text style={{ color: colors.brand, fontWeight: fontWeights.bold, fontSize: fontSizes.md }}>
+                Create Free Account
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         <View style={{ marginBottom: spacing.lg }}>
           <SectionHeader title="Categories" />

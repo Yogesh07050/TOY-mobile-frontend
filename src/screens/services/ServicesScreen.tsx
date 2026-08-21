@@ -6,6 +6,7 @@ import { Screen, Chip, EmptyState, LoadingView } from '../../components/ui';
 import { SearchBar, ServiceCard, NotificationBell } from '../../components';
 import { useServicesList } from '../../hooks/useServices';
 import { useToggleSavedService } from '../../hooks/useSavedServices';
+import { useAuthPrompt } from '../../store/AuthPromptContext';
 import { useCategories } from '../../hooks/useCategories';
 import { useLocationContext } from '../../services/location/LocationContext';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
@@ -37,6 +38,7 @@ export function ServicesScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights } = useTheme();
   const { coords } = useLocationContext();
   const queryClient = useQueryClient();
+  const prompt = useAuthPrompt();
   const categories = useCategories();
   const toggleSavedService = useToggleSavedService();
 
@@ -69,10 +71,12 @@ export function ServicesScreen({ navigation }: Props) {
   const services = results.data?.pages.flatMap((p) => p.services) ?? [];
   const cardWidth = (Dimensions.get('window').width - H_PADDING * 2 - GAP) / NUM_COLUMNS;
 
-  const onToggleSave = (service: Service) =>
+  const onToggleSave = (service: Service) => {
+    if (!prompt.require('save-service', () => onToggleSave(service))) return;
     toggleSavedService.mutate({ serviceId: service.id, isSaved: service.isSaved }, {
       onSettled: () => queryClient.invalidateQueries({ queryKey: ['savedServices'] }),
     });
+  };
 
   return (
     <Screen edges={['top', 'left', 'right']}>

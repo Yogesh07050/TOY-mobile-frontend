@@ -7,6 +7,7 @@ import type { UnifiedListing } from '../types';
 import { formatDistance } from '../utils/format';
 import { useToggleFavorite } from '../hooks/useFavorites';
 import { useToggleSavedService } from '../hooks/useSavedServices';
+import { useAuthPrompt } from '../store/AuthPromptContext';
 import { Badge } from './ui/Badge';
 
 interface UnifiedListingCardProps {
@@ -26,10 +27,16 @@ export function UnifiedListingCard({ listing, onPress, width }: UnifiedListingCa
   const { colors, radii, spacing, fontSizes, fontWeights, shadows } = useTheme();
   const toggleFavorite = useToggleFavorite();
   const toggleSavedService = useToggleSavedService();
+  const prompt = useAuthPrompt();
   const distanceLabel = formatDistance(listing.distanceKm);
   const isProduct = listing.sourceType === 'product';
 
   const onToggleSave = () => {
+    // §5: this card appears on the guest home screen, so the heart raises the
+    // sheet rather than firing a request that could only come back 401.
+    const intent = isProduct ? 'save-offer' : 'save-service';
+    if (!prompt.require(intent, onToggleSave)) return;
+
     if (isProduct) {
       toggleFavorite.mutate({ offerId: listing.id, isFavorite: listing.isSaved });
     } else if (listing.serviceId != null) {

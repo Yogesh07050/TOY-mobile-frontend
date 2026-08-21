@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../theme';
 import { Screen, TextField, Button } from '../../components/ui';
 import { resetPassword } from '../../api/auth';
 import { getApiErrorMessage } from '../../api/client';
 import { isStrongPassword, PASSWORD_REQUIREMENTS_MESSAGE } from '../../utils/validators';
-import type { AuthStackParamList } from '../../navigation/types';
+import type { AuthScreenProps } from '../../navigation/types';
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
+type Props = AuthScreenProps<'ResetPassword'>;
 
 export function ResetPasswordScreen({ navigation, route }: Props) {
   const { colors, spacing, fontSizes, fontWeights } = useTheme();
-  const [token, setToken] = useState(route.params?.token ?? '');
+  const [token, setToken] = useState(route?.params?.token ?? '');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});

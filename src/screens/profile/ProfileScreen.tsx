@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { Screen, Avatar } from '../../components/ui';
 import { useAuth } from '../../store/AuthContext';
+import { GuestGate } from '../../components/GuestGate';
 import type { MainTabScreenProps } from '../../navigation/types';
 
 type Props = MainTabScreenProps<'Profile'>;
@@ -17,7 +18,7 @@ interface Row {
 
 export function ProfileScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights, radii } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
 
   const confirmLogout = () => {
     Alert.alert('Log out', 'Are you sure you want to log out?', [
@@ -44,6 +45,21 @@ export function ProfileScreen({ navigation }: Props) {
   const otherRows: Row[] = [
     { icon: 'log-out-outline', label: 'Logout', onPress: confirmLogout, destructive: true },
   ];
+
+  // §23: a guest gets the welcome, not an empty profile. The rows below all
+  // read or write account data, so there is nothing here to show without one.
+  if (!isAuthenticated) {
+    return (
+      <Screen>
+        <GuestGate
+          icon="person-outline"
+          title="Welcome to Offers App"
+          message="Discover offers and services near you. Log in to save what you like, follow shops and track your savings."
+          browseHint="Continue browsing as Guest — Offers, Services and Near Me need no account."
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen>

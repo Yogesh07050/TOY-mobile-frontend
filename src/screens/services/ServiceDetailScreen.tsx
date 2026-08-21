@@ -8,6 +8,7 @@ import { Screen, Button, Badge, TextField, LoadingView, EmptyState } from '../..
 import { ServiceRail } from '../../components';
 import { useService, useBookService, useTrackService, useServicesList } from '../../hooks/useServices';
 import { useToggleSavedService } from '../../hooks/useSavedServices';
+import { useAuthPrompt } from '../../store/AuthPromptContext';
 import { useLocationContext } from '../../services/location/LocationContext';
 import { formatDistance } from '../../utils/format';
 import { formatServiceDays, formatServiceOfferChip, formatServiceOfferValidity, formatServicePriceLabel, formatServiceTime } from '../../utils/serviceFormat';
@@ -25,6 +26,7 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights, radii } = useTheme();
   const { coords } = useLocationContext();
   const queryClient = useQueryClient();
+  const prompt = useAuthPrompt();
 
   const { data: service, isLoading, isError } = useService(serviceId, coords ?? undefined);
   const toggleSavedService = useToggleSavedService();
@@ -69,10 +71,37 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
     await Share.share({ message: `${service.name} at ${service.shop.name}` });
   };
 
-  const onToggleSave = () =>
+  // §14: every detail on this page is public; the save is not.
+  const onToggleSave = () => {
+    if (!prompt.require('save-service', onToggleSave)) return;
     toggleSavedService.mutate({ serviceId: service.id, isSaved: service.isSaved }, {
       onSettled: () => queryClient.invalidateQueries({ queryKey: ['savedServices'] }),
     });
+  };
+
+  /** §31: saving a service offer is what triggers its expiry reminder later. */
+  const onClaimServiceOffer = () => {
+    if (!prompt.require('claim-offer', onClaimServiceOffer)) return;
+    navigation.navigate('ServiceClaimConfirmation', {
+      serviceOfferId: service.activeOffer!.id,
+      serviceId: service.id,
+    });
+  };
+
+  const onToggleSaveOther = (other: Service) => {
+    if (!prompt.require('save-service', () => onToggleSaveOther(other))) return;
+    toggleSavedService.mutate({ serviceId: other.id, isSaved: other.isSaved });
+  };
+
+  /**
+   * §14: "Guest -> [Book Now] -> Login / Sign Up". The form opens by itself on
+   * the far side of the login, so the tap is not spent asking for a login.
+   */
+  const openBookingForm = (mode: 'book' | 'enquire') => {
+    const intent = mode === 'book' ? 'book-service' : 'enquire-service';
+    if (!prompt.require(intent, () => setShowBookingForm(mode))) return;
+    setShowBookingForm(mode);
+  };
 
   const onDirections = () => {
     if (primaryBranch?.latitude && primaryBranch?.longitude) {
@@ -205,9 +234,9 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
             </View>
           ) : (
             <View style={{ flexDirection: 'row', gap: spacing.xs, marginTop: spacing.xs }}>
-              {canBook ? <Button label="Book" onPress={() => setShowBookingForm('book')} style={{ flex: 1 }} /> : null}
+              {canBook ? <Button label="Book" onPress={() => openBookingForm('book')} style={{ flex: 1 }} /> : null}
               {canEnquire ? (
-                <Button label="Enquire" variant={canBook ? 'secondary' : 'primary'} onPress={() => setShowBookingForm('enquire')} style={{ flex: 1 }} />
+                <Button label="Enquire" variant={canBook ? 'secondary' : 'primary'} onPress={() => openBookingForm('enquire')} style={{ flex: 1 }} />
               ) : null}
               <Button label="Share" variant="secondary" icon={<Ionicons name="share-social-outline" size={16} color={colors.text} />} onPress={onShare} />
             </View>
@@ -218,7 +247,7 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
               label="Claim Offer"
               variant="secondary"
               fullWidth
-              onPress={() => navigation.navigate('ServiceClaimConfirmation', { serviceOfferId: service.activeOffer!.id, serviceId: service.id })}
+              onPress={onClaimServiceOffer}
             />
           ) : null}
 
@@ -248,7 +277,7 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
           services={(moreFromShop.data?.pages[0]?.services ?? []).filter((s: Service) => s.id !== service.id)}
           loading={moreFromShop.isLoading}
           onServicePress={(s) => navigation.push('ServiceDetail', { serviceId: s.id })}
-          onToggleSave={(s) => toggleSavedService.mutate({ serviceId: s.id, isSaved: s.isSaved })}
+          onToggleSave={onToggleSaveOther}
         />
       </ScrollView>
     </Screen>

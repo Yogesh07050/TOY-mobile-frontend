@@ -4,17 +4,29 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme';
 import { useAuth } from '../store/AuthContext';
+import { useAuthPrompt } from '../store/AuthPromptContext';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 
 export function NotificationBell() {
   const { colors, spacing } = useTheme();
   const { user } = useAuth();
+  const prompt = useAuthPrompt();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const unread = user?.unreadNotifications ?? 0;
 
   return (
-    <Pressable onPress={() => navigation.navigate('Notifications')} hitSlop={8} style={{ padding: spacing.xxs }}>
+    <Pressable
+      onPress={() => {
+        // §6: notifications are account-scoped, so a guest gets the invitation
+        // rather than an empty list.
+        if (prompt.require('notifications', () => navigation.navigate('Notifications'))) {
+          navigation.navigate('Notifications');
+        }
+      }}
+      hitSlop={8}
+      style={{ padding: spacing.xxs }}
+    >
       <View>
         <Ionicons name="notifications-outline" size={24} color={colors.text} />
         {unread > 0 ? (

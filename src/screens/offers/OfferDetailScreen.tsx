@@ -7,6 +7,7 @@ import { useTheme } from '../../theme';
 import { Screen, Button, Badge, LoadingView, EmptyState } from '../../components/ui';
 import { useOffer } from '../../hooks/useOffers';
 import { useToggleFavorite } from '../../hooks/useFavorites';
+import { useAuthPrompt } from '../../store/AuthPromptContext';
 import { useLocationContext } from '../../services/location/LocationContext';
 import { trackOffer } from '../../services/analytics/analyticsService';
 import { formatDistance, formatExpiryLabel, formatOfferHeadline, isEndingUrgently } from '../../utils/format';
@@ -22,6 +23,7 @@ export function OfferDetailScreen({ route, navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights, radii } = useTheme();
   const { coords } = useLocationContext();
   const queryClient = useQueryClient();
+  const prompt = useAuthPrompt();
 
   const { data: offer, isLoading, isError } = useOffer(offerId, coords ?? undefined);
   const toggleFavorite = useToggleFavorite();
@@ -57,10 +59,20 @@ export function OfferDetailScreen({ route, navigation }: Props) {
     });
   };
 
-  const onToggleSave = () =>
+  // §13: the whole page is public. Only the save needs an account, and asking
+  // for it happens over the page rather than instead of it (§5).
+  const onToggleSave = () => {
+    if (!prompt.require('save-offer', onToggleSave)) return;
     toggleFavorite.mutate({ offerId: offer.id, isFavorite: offer.isFavorite }, {
       onSettled: () => queryClient.invalidateQueries({ queryKey: ['favorites'] }),
     });
+  };
+
+  /** §5: "Guest -> Claim Offer -> Login / Sign Up", then the claim continues. */
+  const onClaim = () => {
+    if (!prompt.require('claim-offer', onClaim)) return;
+    navigation.navigate('ClaimConfirmation', { offerId: offer.id });
+  };
 
   const onDirections = () => {
     if (primaryBranch?.latitude && primaryBranch?.longitude) {
@@ -137,7 +149,7 @@ export function OfferDetailScreen({ route, navigation }: Props) {
           ) : null}
 
           <View style={{ flexDirection: 'row', gap: spacing.xs, marginTop: spacing.xs }}>
-            <Button label="Claim Offer" onPress={() => navigation.navigate('ClaimConfirmation', { offerId: offer.id })} style={{ flex: 1 }} />
+            <Button label="Claim Offer" onPress={onClaim} style={{ flex: 1 }} />
             <Button label="Share" variant="secondary" icon={<Ionicons name="share-social-outline" size={16} color={colors.text} />} onPress={onShare} />
           </View>
           {primaryBranch ? (

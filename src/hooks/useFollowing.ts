@@ -2,12 +2,22 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as followingApi from '../api/following';
 import { queryKeys } from '../api/queryKeys';
 
-export function useFollowedShops() {
-  return useQuery({ queryKey: queryKeys.followedShops(), queryFn: followingApi.listFollowedShops });
+/** @param enabled False for a guest — following is authenticated (§25). */
+export function useFollowedShops(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.followedShops(),
+    queryFn: followingApi.listFollowedShops,
+    enabled,
+  });
 }
 
-export function useFollowedCategories() {
-  return useQuery({ queryKey: queryKeys.followedCategories(), queryFn: followingApi.listFollowedCategories });
+/** @param enabled False for a guest — following is authenticated (§25). */
+export function useFollowedCategories(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.followedCategories(),
+    queryFn: followingApi.listFollowedCategories,
+    enabled,
+  });
 }
 
 export function useToggleShopFollow() {

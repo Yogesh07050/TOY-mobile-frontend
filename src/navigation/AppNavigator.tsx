@@ -1,6 +1,10 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainTabNavigator } from './MainTabNavigator';
+import { LoginScreen } from '../screens/auth/LoginScreen';
+import { RegisterScreen } from '../screens/auth/RegisterScreen';
+import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
+import { ResetPasswordScreen } from '../screens/auth/ResetPasswordScreen';
 import { OfferDetailScreen } from '../screens/offers/OfferDetailScreen';
 import { ServiceDetailScreen } from '../screens/services/ServiceDetailScreen';
 import { ShopDetailScreen } from '../screens/shops/ShopDetailScreen';
@@ -25,6 +29,17 @@ export function AppNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+
+      {/*
+        §19/§21: a guest browsing the app can be asked to authenticate at any
+        point, so these live in the main stack too. Presented as modals so the
+        screen the guest was on is still underneath - dismissing returns them to
+        the offer they were reading rather than to the top of the app (§5).
+      */}
+      <Stack.Screen name="Login" component={LoginScreen} options={{ presentation: 'modal' }} />
+      <Stack.Screen name="Register" component={RegisterScreen} options={{ presentation: 'modal' }} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ presentation: 'modal' }} />
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="OfferDetail" component={OfferDetailScreen} />
       <Stack.Screen name="ServiceDetail" component={ServiceDetailScreen} />
       <Stack.Screen name="ShopDetail" component={ShopDetailScreen} />

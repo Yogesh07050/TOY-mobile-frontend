@@ -3,12 +3,18 @@ import * as offersApi from '../api/offers';
 import { queryKeys } from '../api/queryKeys';
 import type { ListOffersParams } from '../api/offers';
 
-export function useOffersList(params: ListOffersParams) {
+/**
+ * @param enabled Pass `false` when the params make this an account-scoped
+ *   listing a guest cannot ask for — `following: true` and `favorites: true`
+ *   are rejected with a 401 by the API (§25), so the request is not made.
+ */
+export function useOffersList(params: ListOffersParams, enabled = true) {
   return useInfiniteQuery({
     queryKey: queryKeys.offers(params),
     queryFn: ({ pageParam }) => offersApi.listOffers({ ...params, page: pageParam }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => (lastPage.meta.hasNext ? lastPage.meta.page + 1 : undefined),
+    enabled,
   });
 }
 

@@ -4,12 +4,17 @@ import { queryKeys } from '../api/queryKeys';
 import { patchServiceInCache } from '../utils/serviceCache';
 import type { ListServicesParams } from '../api/services';
 
-export function useSavedServicesList(params: Omit<ListServicesParams, 'saved'> = {}) {
+/** @param enabled False for a guest — saved services is authenticated (§25). */
+export function useSavedServicesList(
+  params: Omit<ListServicesParams, 'saved'> = {},
+  enabled = true,
+) {
   return useInfiniteQuery({
     queryKey: queryKeys.savedServices(params),
     queryFn: ({ pageParam }) => savedServicesApi.listSavedServices({ ...params, page: pageParam }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => (lastPage.meta.hasNext ? lastPage.meta.page + 1 : undefined),
+    enabled,
   });
 }
 
