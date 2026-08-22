@@ -10,9 +10,12 @@ interface LocationSelectorProps {
 
 export function LocationSelector({ onPress }: LocationSelectorProps) {
   const { colors, radii, spacing, fontSizes, fontWeights } = useTheme();
-  const { locationLabel, permissionStatus } = useLocationContext();
+  const { locationLabel, locating } = useLocationContext();
 
-  const label = locationLabel ?? (permissionStatus === 'denied' ? 'Select Location' : 'Detecting location…');
+  // "Detecting location…" only while a lookup is actually running. Once it has
+  // finished without a fix - denied, timed out, or unavailable - the chip has to
+  // offer the way forward instead, which is picking a city by hand.
+  const label = locationLabel ?? (locating ? 'Detecting location…' : 'Select Location');
 
   return (
     <Pressable
