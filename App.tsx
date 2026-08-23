@@ -11,6 +11,7 @@ import { AuthProvider } from './src/store/AuthContext';
 import { AuthPromptProvider } from './src/store/AuthPromptContext';
 import { LocationProvider } from './src/services/location/LocationContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { linking } from './src/navigation/linking';
 
 function AppShell() {
   const { colors, isDark } = useTheme();
@@ -29,7 +30,7 @@ function AppShell() {
   };
 
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <NavigationContainer theme={navigationTheme} linking={linking}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <RootNavigator />
     </NavigationContainer>
