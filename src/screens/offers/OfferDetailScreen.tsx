@@ -10,7 +10,7 @@ import { useToggleFavorite } from '../../hooks/useFavorites';
 import { useAuthPrompt } from '../../store/AuthPromptContext';
 import { useLocationContext } from '../../services/location/LocationContext';
 import { trackOffer } from '../../services/analytics/analyticsService';
-import { formatDistance, formatExpiryLabel, formatOfferHeadline, isEndingUrgently } from '../../utils/format';
+import { formatDate, formatDistance, formatExpiryLabel, formatOfferHeadline, isEndingUrgently } from '../../utils/format';
 import { offerDeepLink, openDirections } from '../../utils/links';
 import type { RootStackScreenProps } from '../../navigation/types';
 
@@ -166,7 +166,7 @@ export function OfferDetailScreen({ route, navigation }: Props) {
 
           <Section title="Validity">
             <Text style={{ color: colors.textMuted, fontSize: fontSizes.sm }}>
-              {new Date(offer.startDate).toLocaleDateString()} – {new Date(offer.endDate).toLocaleDateString()}
+              {formatDate(offer.startDate)} – {formatDate(offer.endDate)}
             </Text>
           </Section>
 
@@ -183,7 +183,9 @@ export function OfferDetailScreen({ route, navigation }: Props) {
                 <Text style={{ color: colors.text, fontSize: fontSizes.sm, fontWeight: fontWeights.semibold }}>
                   {offer.rating.average?.toFixed(1)}
                 </Text>
-                <Text style={{ color: colors.textMuted, fontSize: fontSizes.sm }}>({offer.rating.count} reviews)</Text>
+                <Text style={{ color: colors.textMuted, fontSize: fontSizes.sm }}>
+                  ({offer.rating.count} review{offer.rating.count === 1 ? '' : 's'})
+                </Text>
               </View>
             </Section>
           ) : null}

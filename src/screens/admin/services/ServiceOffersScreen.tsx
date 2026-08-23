@@ -5,6 +5,7 @@ import { useTheme } from '../../../theme';
 import { Screen, Chip, Badge, EmptyState, LoadingView } from '../../../components/ui';
 import { useServiceOffersList, useSetServiceOfferStatus, useDeleteServiceOffer } from '../../../hooks/useAdminServiceOffers';
 import { getApiErrorMessage } from '../../../api/client';
+import { formatDate } from '../../../utils/format';
 import type { AdminStackScreenProps } from '../../../navigation/types';
 import type { ServiceOffer, ServiceOfferStatus } from '../../../types';
 
@@ -98,7 +99,7 @@ export function ServiceOffersScreen({ route, navigation }: Props) {
               </View>
               <Text style={{ color: colors.text, fontWeight: fontWeights.semibold }}>{offerHeadline(item)}</Text>
               <Text style={{ color: colors.textMuted, fontSize: fontSizes.xs }}>
-                {new Date(item.startDate).toLocaleDateString()} – {new Date(item.endDate).toLocaleDateString()} · {item.viewCount} views · {item.claimCount} claims
+                {formatDate(item.startDate)} – {formatDate(item.endDate)} · {item.viewCount} views · {item.claimCount} claims
               </Text>
               <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: 4 }}>
                 <Pressable onPress={() => navigation.navigate('ServiceOfferForm', { serviceId, offerId: item.id })} hitSlop={6}>

@@ -78,8 +78,16 @@ export function Button({
   };
 
   if (variant === 'primary') {
+    // The gradient carries `baseStyle`, so the Pressable needs the width too.
+    // Without it `fullWidth` sized the gradient against a Pressable that was
+    // itself shrink-to-fit, which inside a centring parent left the button
+    // narrow and its label off-centre.
     return (
-      <Pressable onPress={onPress} disabled={isDisabled} style={[shadows.brand, style]}>
+      <Pressable
+        onPress={onPress}
+        disabled={isDisabled}
+        style={[shadows.brand, fullWidth ? { width: '100%' } : null, style]}
+      >
         <LinearGradient
           colors={colors.gradientBrand}
           start={{ x: 0, y: 0 }}

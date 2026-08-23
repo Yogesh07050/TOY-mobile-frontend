@@ -5,6 +5,7 @@ import { useTheme } from '../../../theme';
 import { Screen, Button, TextField, Chip, LoadingView } from '../../../components/ui';
 import { useServiceOffer, useCreateServiceOffer, useUpdateServiceOffer } from '../../../hooks/useAdminServiceOffers';
 import { getApiErrorMessage } from '../../../api/client';
+import { formatDate } from '../../../utils/format';
 import type { AdminStackScreenProps } from '../../../navigation/types';
 import type { ServiceOfferFormValues } from '../../../types/admin';
 import type { ServiceOfferType } from '../../../types';
@@ -145,14 +146,14 @@ export function ServiceOfferFormScreen({ route, navigation }: Props) {
           <View style={{ flex: 1 }}>
             <TextField
               label="Start Date"
-              value={new Date(form.startDate).toLocaleDateString()}
+              value={formatDate(form.startDate)}
               editable={false}
             />
           </View>
           <View style={{ flex: 1 }}>
             <TextField
               label="End Date"
-              value={new Date(form.endDate).toLocaleDateString()}
+              value={formatDate(form.endDate)}
               editable={false}
             />
           </View>
