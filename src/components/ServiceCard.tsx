@@ -53,10 +53,17 @@ export function ServiceCard({ service, onPress, onToggleSave, saving, width }: S
             hitSlop={8}
             style={[
               styles.saveBtn,
-              { backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: radii.pill, top: spacing.xs, right: spacing.xs },
+              {
+                // White scrim guarantees contrast over a photo. With no photo the
+                // area is a theme surface, so a fixed white pill fought dark mode.
+                backgroundColor: service.imageUrl ? 'rgba(255,255,255,0.92)' : colors.surface,
+                borderRadius: radii.pill,
+                top: spacing.xs,
+                right: spacing.xs,
+              },
             ]}
           >
-            <Ionicons name={service.isSaved ? 'heart' : 'heart-outline'} size={18} color={service.isSaved ? colors.accent : '#3a3a3a'} />
+            <Ionicons name={service.isSaved ? 'heart' : 'heart-outline'} size={18} color={service.isSaved ? colors.accent : service.imageUrl ? '#3a3a3a' : colors.textMuted} />
           </Pressable>
         ) : null}
       </View>
