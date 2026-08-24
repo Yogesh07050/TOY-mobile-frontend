@@ -60,7 +60,8 @@
         {
           "photosPermission": "OffersOffer uses your photos to set a profile picture."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {
