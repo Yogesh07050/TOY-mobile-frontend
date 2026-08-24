@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
@@ -9,20 +9,34 @@ import {
   useMarkAllNotificationsRead,
   useDeleteNotification,
 } from '../../hooks/useNotifications';
+import { clearBadge } from '../../services/notifications/pushNotifications';
 import type { RootStackScreenProps } from '../../navigation/types';
 import type { NotificationItem } from '../../types';
 
 type Props = RootStackScreenProps<'Notifications'>;
 
+/**
+ * Keyed by the `type` the backend actually sends (see
+ * `services/notifications.js`). Anything unmapped falls back to a bell, so a
+ * new category added server-side degrades to a generic icon rather than a gap.
+ */
 const TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  offer_ending: 'time-outline',
-  new_offer: 'pricetag-outline',
-  nearby_offer: 'location-outline',
-  claim_reminder: 'ticket-outline',
-  offer_redeemed: 'checkmark-circle-outline',
-  category_offer: 'grid-outline',
-  recommended: 'sparkles-outline',
+  FAVORITE_EXPIRING: 'time-outline',
   SAVED_SERVICE_OFFER_EXPIRING: 'briefcase-outline',
+  NEW_OFFER_FOLLOWED_SHOP: 'storefront-outline',
+  NEW_OFFER_FOLLOWED_CATEGORY: 'grid-outline',
+  NEW_OFFER_NEARBY: 'location-outline',
+  OFFER_UPDATED: 'sparkles-outline',
+  OFFER_DEACTIVATED: 'close-circle-outline',
+  OFFER_CLAIMED: 'ticket-outline',
+  SERVICE_OFFER_CLAIMED: 'ticket-outline',
+  OFFER_REDEEMED: 'checkmark-circle-outline',
+  SERVICE_OFFER_REDEEMED: 'checkmark-circle-outline',
+  BOOKING_CREATED: 'calendar-outline',
+  BOOKING_UPDATED: 'calendar-outline',
+  BOOKING_CANCELLED: 'calendar-clear-outline',
+  ADMIN_ANNOUNCEMENT: 'megaphone-outline',
+  SUBSCRIPTION_BILLING: 'card-outline',
 };
 
 export function NotificationsScreen({ navigation }: Props) {
@@ -35,15 +49,41 @@ export function NotificationsScreen({ navigation }: Props) {
   const notifications = list.data?.pages.flatMap((p) => p.notifications) ?? [];
   const unreadCount = list.data?.pages[0]?.meta.unread ?? 0;
 
+  // Opening the centre is the moment the unread count stops being true on the
+  // lock screen, so the OS badge is cleared here rather than on every fetch.
+  useEffect(() => {
+    void clearBadge();
+  }, []);
+
+  /**
+   * The in-app twin of a notification tap (Push §27, §29).
+   *
+   * Both routes lead to the same screens, but only push travels through the
+   * deep link; here the entity is already in hand, so it is navigated
+   * directly. `deepLink` is still what decides *whether* there is a
+   * destination, keeping the two paths from disagreeing about which
+   * notifications are tappable.
+   */
   const onPressItem = (item: NotificationItem) => {
     if (!item.isRead) markRead.mutate(item.id);
-    if (item.entityType === 'offer' && item.entityId) {
+    if (!item.entityId) return;
+
+    if (item.entityType === 'offer') {
       navigation.navigate('OfferDetail', { offerId: item.entityId });
-    } else if (item.entityType === 'service_offer' && item.entityId) {
+    } else if (item.entityType === 'service_offer' || item.entityType === 'service') {
       // Backend contract: entityId is the service's own id, not the service_offer id.
       navigation.navigate('ServiceDetail', { serviceId: item.entityId });
-    } else if (item.entityType === 'shop' && item.entityId) {
+    } else if (item.entityType === 'shop') {
       navigation.navigate('ShopDetail', { shopId: item.entityId });
+    } else if (item.deepLink) {
+      // Claims and bookings reference a record with no screen of its own; the
+      // backend points them at the listing instead, so follow what it chose.
+      const match = /^offersapp:\/\/(offer|service|shop)\/(\d+)$/.exec(item.deepLink);
+      if (!match) return;
+      const id = Number(match[2]);
+      if (match[1] === 'offer') navigation.navigate('OfferDetail', { offerId: id });
+      else if (match[1] === 'service') navigation.navigate('ServiceDetail', { serviceId: id });
+      else navigation.navigate('ShopDetail', { shopId: id });
     }
   };
 

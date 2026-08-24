@@ -263,19 +263,48 @@ export interface NotificationItem {
   message: string | null;
   entityType: string | null;
   entityId: number | null;
+  /**
+   * `offersapp://...` destination decided by the backend when the notification
+   * was created (Push §26). Preferred over re-deriving a screen from
+   * `entityType`, so a notification from months ago still opens what it named.
+   * Null on rows created before push shipped.
+   */
+  deepLink: string | null;
+  pushState: 'none' | 'queued' | 'sent' | 'delivered' | 'failed' | 'cancelled' | 'expired';
   isRead: boolean;
+  /** Set when the customer tapped through, rather than merely seeing the row. */
+  openedAt: string | null;
   createdAt: string;
 }
 
 export interface NotificationPreferences {
   emailEnabled: boolean;
+  /**
+   * Master switch for device push. Off still records notifications in the
+   * in-app centre - it only stops them reaching the lock screen (Push §29).
+   */
+  pushEnabled: boolean;
   followedShopOffers: boolean;
   followedCategoryOffers: boolean;
   nearbyOffers: boolean;
   favoriteExpiring: boolean;
   offerUpdates: boolean;
+  claimUpdates: boolean;
+  redemptionUpdates: boolean;
+  bookingUpdates: boolean;
   adminAnnouncements: boolean;
   savedServiceOfferExpiring: boolean;
+}
+
+/** A device registered to receive push for the signed-in account (Push §37). */
+export interface PushDevice {
+  id: number;
+  platform: string | null;
+  deviceName: string | null;
+  transport: 'expo' | 'fcm' | 'apns';
+  isActive: boolean;
+  lastSeenAt: string;
+  createdAt: string;
 }
 
 export interface Review {

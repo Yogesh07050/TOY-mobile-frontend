@@ -5,6 +5,7 @@ import * as authApi from '../api/auth';
 import * as usersApi from '../api/users';
 import { refreshSession, setSessionExpiredHandler } from '../api/client';
 import { clearTokens, getTokens, setTokens } from '../services/auth/tokenStorage';
+import { unregisterDevice } from '../services/notifications/pushNotifications';
 import type { AuthResult, User } from '../types';
 
 interface AuthContextValue {
@@ -145,6 +146,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * on this device never sees the previous one's data.
    */
   const logout = useCallback(async () => {
+    // Before the session goes: the unregister endpoint is authenticated, and
+    // leaving this device registered would send the next account's owner the
+    // previous customer's notifications (Push §37).
+    await unregisterDevice();
     try {
       await authApi.logout();
     } catch {

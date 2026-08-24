@@ -9,6 +9,7 @@ import { queryClient } from './src/api/queryClient';
 import { ThemeProvider, useTheme } from './src/theme';
 import { AuthProvider } from './src/store/AuthContext';
 import { AuthPromptProvider } from './src/store/AuthPromptContext';
+import { PushNotificationsProvider } from './src/services/notifications/PushNotificationsProvider';
 import { LocationProvider } from './src/services/location/LocationContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { linking } from './src/navigation/linking';
@@ -48,7 +49,12 @@ export default function App() {
                 {/* Inside AuthProvider: the prompt replays a guest's held action
                     the moment a session appears (§7). */}
                 <AuthPromptProvider>
-                  <AppShell />
+                  {/* Inside AuthProvider too: a device is only registered for
+                      push once there is an account to attach it to, and it is
+                      re-registered on every sign-in (Push §30, §37). */}
+                  <PushNotificationsProvider>
+                    <AppShell />
+                  </PushNotificationsProvider>
                 </AuthPromptProvider>
               </AuthProvider>
             </LocationProvider>

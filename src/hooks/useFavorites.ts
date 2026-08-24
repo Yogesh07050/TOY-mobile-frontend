@@ -2,6 +2,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import * as favoritesApi from '../api/favorites';
 import { queryKeys } from '../api/queryKeys';
 import { patchOfferInCache } from '../utils/offerCache';
+import { usePush } from '../services/notifications/PushNotificationsProvider';
 import type { ListOffersParams } from '../api/offers';
 
 /**
@@ -22,6 +23,7 @@ export function useFavoritesList(params: Omit<ListOffersParams, 'favorites'> = {
 
 export function useToggleFavorite() {
   const queryClient = useQueryClient();
+  const { noteEngagement } = usePush();
 
   return useMutation({
     mutationFn: async ({ offerId, isFavorite }: { offerId: number; isFavorite: boolean }) => {
@@ -38,6 +40,13 @@ export function useToggleFavorite() {
     onError: (_err, { offerId, isFavorite }) => {
       // Roll back the optimistic flip on failure.
       patchOfferInCache(queryClient, offerId, { isFavorite });
+    },
+    onSuccess: ({ isFavorite }) => {
+      // Saving an offer is the clearest moment notifications pay for
+      // themselves - it is the thing the expiry reminder will be about - so
+      // it is what earns the right to ask for permission (Push §5). Only the
+      // save direction counts; un-saving is the opposite signal.
+      if (isFavorite) noteEngagement();
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });

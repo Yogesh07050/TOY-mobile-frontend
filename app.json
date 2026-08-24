@@ -29,7 +29,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS"
       ]
     },
     "web": {
@@ -49,7 +50,8 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#f59e0b"
+          "color": "#f59e0b",
+          "defaultChannel": "default"
         }
       ],
       [
