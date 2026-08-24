@@ -17,6 +17,12 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+# Firebase/FCM credentials are plain .json and .plist, so they need naming
+# rather than an extension rule. The service-account key in particular grants
+# send access to the whole project.
+google-services.json
+GoogleService-Info.plist
+*-firebase-adminsdk-*.json
 
 # Metro
 .metro-health-check*
