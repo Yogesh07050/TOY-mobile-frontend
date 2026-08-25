@@ -51,5 +51,8 @@
     "build:dev:ios": "npx --yes eas-cli@latest build --profile development --platform ios",
     "build:preview": "npx --yes eas-cli@latest build --profile preview --platform android"
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": ">=20.19.4"
+  }
 }
