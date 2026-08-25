@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { Screen, Button, Chip, EmptyState, LoadingView } from '../../components/ui';
@@ -36,6 +37,18 @@ export function NearMeScreen({ navigation }: Props) {
   const nearby = useNearbyListings({ type: typeFilter, limit: 50 });
   const listings = nearby.data ?? [];
   const pins = listings.filter((l) => l.latitude != null && l.longitude != null);
+
+  /*
+   * Android refuses to construct a MapView without a Google Maps API key, and
+   * it fails at native attach time - an `addViewAt` IllegalStateException that
+   * names neither maps nor the key, and takes the screen down with it. Checking
+   * the flag app.config.js sets lets the screen show the same listings as a
+   * list instead, which is strictly better than a crash and is also what iOS
+   * would want if the key were ever scoped to Android alone.
+   */
+  const mapsAvailable =
+    Platform.OS !== 'android' ||
+    Boolean((Constants.expoConfig?.extra as { googleMapsConfigured?: boolean } | undefined)?.googleMapsConfigured);
 
   const openDetails = (listing: UnifiedListing) => {
     if (listing.sourceType === 'product') {
@@ -106,6 +119,44 @@ export function NearMeScreen({ navigation }: Props) {
               <LoadingView />
             ) : pins.length === 0 ? (
               <EmptyState icon="map-outline" title="Nothing nearby" message="No offers or services found close to you." />
+            ) : !mapsAvailable ? (
+              <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.xs }}>
+                <Text style={{ color: colors.textMuted, fontSize: fontSizes.xs, marginBottom: spacing.xxs }}>
+                  Showing {pins.length} nearby as a list — the map needs a Google Maps API key.
+                </Text>
+                {pins.map((listing) => (
+                  <Pressable
+                    key={`${listing.sourceType}-${listing.id}`}
+                    onPress={() => openDetails(listing)}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: spacing.sm,
+                      padding: spacing.sm,
+                      borderRadius: radii.md,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      backgroundColor: colors.surface,
+                    }}
+                  >
+                    <Ionicons
+                      name={listing.sourceType === 'product' ? 'pricetag-outline' : 'construct-outline'}
+                      size={18}
+                      color={listing.sourceType === 'product' ? colors.brand : colors.accent}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text numberOfLines={1} style={{ color: colors.text, fontSize: fontSizes.md, fontWeight: fontWeights.semibold }}>
+                        {listing.title}
+                      </Text>
+                      <Text numberOfLines={1} style={{ color: colors.textMuted, fontSize: fontSizes.xs }}>
+                        {listing.shop.name}
+                        {listing.distanceKm != null ? ` · ${listing.distanceKm.toFixed(1)} km` : ''}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+                  </Pressable>
+                ))}
+              </ScrollView>
             ) : (
               <MapView
                 style={{ flex: 1 }}
