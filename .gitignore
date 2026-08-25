@@ -37,6 +37,9 @@ yarn-error.*
 *.pem
 
 # local env files
+# .env holds EXPO_PUBLIC_API_URL, which points at whatever machine is serving
+# the API - a LAN address on one laptop is wrong on every other one.
+.env
 .env*.local
 
 # typescript
