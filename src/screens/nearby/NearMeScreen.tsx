@@ -29,7 +29,7 @@ function headlineFor(listing: UnifiedListing): string {
 
 export function NearMeScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights, radii } = useTheme();
-  const { permissionStatus, coords, requestPermission } = useLocationContext();
+  const { permissionStatus, coords, requestPermission, locating, locationError, refreshLocation } = useLocationContext();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [selected, setSelected] = useState<UnifiedListing | null>(null);
 
@@ -52,7 +52,12 @@ export function NearMeScreen({ navigation }: Props) {
         <NotificationBell />
       </View>
 
-      {permissionStatus !== 'granted' ? (
+      {/*
+        `!coords` guards this too: a customer who declined the permission but
+        chose their area by hand has a perfectly good location, and should get
+        the map rather than be asked again for something they already declined.
+      */}
+      {permissionStatus !== 'granted' && !coords ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg, gap: spacing.md }}>
           <Ionicons name="location-outline" size={40} color={colors.textMuted} />
           <Text style={{ color: colors.text, fontSize: fontSizes.lg, fontWeight: fontWeights.bold, textAlign: 'center' }}>
@@ -61,10 +66,33 @@ export function NearMeScreen({ navigation }: Props) {
           <Text style={{ color: colors.textMuted, fontSize: fontSizes.sm, textAlign: 'center' }}>
             Enable location access to see offers and services near you on the map.
           </Text>
-          <Button label="Enable Location" onPress={requestPermission} />
+          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            <Button label="Enable Location" onPress={requestPermission} />
+            <Button label="Choose Area" variant="secondary" onPress={() => navigation.navigate('SelectLocation')} />
+          </View>
         </View>
-      ) : !coords ? (
+      ) : !coords && locating ? (
         <LoadingView />
+      ) : !coords ? (
+        /*
+         * Permission is granted but no fix arrived - timed out, services off,
+         * or simply never resolved. This branch used to render <LoadingView />,
+         * which spun forever and left the screen with no way forward. Say what
+         * happened and offer both ways out.
+         */
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg, gap: spacing.md }}>
+          <Ionicons name="locate-outline" size={40} color={colors.textMuted} />
+          <Text style={{ color: colors.text, fontSize: fontSizes.lg, fontWeight: fontWeights.bold, textAlign: 'center' }}>
+            Couldn't find your location
+          </Text>
+          <Text style={{ color: colors.textMuted, fontSize: fontSizes.sm, textAlign: 'center' }}>
+            {locationError ?? 'We could not get a location fix on this device.'}
+          </Text>
+          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            <Button label="Try Again" onPress={() => void refreshLocation()} loading={locating} />
+            <Button label="Choose Area" variant="secondary" onPress={() => navigation.navigate('SelectLocation')} />
+          </View>
+        </View>
       ) : (
         <>
           <View style={{ flexDirection: 'row', gap: spacing.xs, paddingHorizontal: spacing.md, marginBottom: spacing.xs }}>

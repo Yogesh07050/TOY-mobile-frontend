@@ -2,6 +2,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import * as savedServicesApi from '../api/savedServices';
 import { queryKeys } from '../api/queryKeys';
 import { patchServiceInCache } from '../utils/serviceCache';
+import { patchUnifiedServiceSaved } from '../utils/unifiedListingCache';
 import { usePush } from '../services/notifications/PushNotificationsProvider';
 import type { ListServicesParams } from '../api/services';
 
@@ -34,9 +35,11 @@ export function useToggleSavedService() {
     },
     onMutate: async ({ serviceId, isSaved }) => {
       patchServiceInCache(queryClient, serviceId, { isSaved: !isSaved });
+      patchUnifiedServiceSaved(queryClient, serviceId, !isSaved);
     },
     onError: (_err, { serviceId, isSaved }) => {
       patchServiceInCache(queryClient, serviceId, { isSaved });
+      patchUnifiedServiceSaved(queryClient, serviceId, isSaved);
     },
     onSuccess: ({ isSaved }) => {
       if (isSaved) noteEngagement();

@@ -11,7 +11,8 @@ type Props = RootStackScreenProps<'SelectLocation'>;
 
 export function SelectLocationScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights } = useTheme();
-  const { permissionStatus, requestPermission, refreshLocation, setManualLocation, deviceCoords } = useLocationContext();
+  const { permissionStatus, requestPermission, refreshLocation, setManualLocation, deviceCoords, locating, locationError } =
+    useLocationContext();
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +24,14 @@ export function SelectLocationScreen({ navigation }: Props) {
       setError('Location permission was denied. Enable it in system settings, or search for your area below.');
       return;
     }
-    await refreshLocation();
+    // Only discard a manually chosen city once the device has actually given us
+    // somewhere to put in its place. Clearing first meant a failed fix left the
+    // app with no location at all, having thrown away one that worked.
+    const located = await refreshLocation();
+    if (!located) {
+      setError(locationError ?? 'Could not get your location. Try again, or search for your area below.');
+      return;
+    }
     setManualLocation(null);
     navigation.goBack();
   };
@@ -62,6 +70,7 @@ export function SelectLocationScreen({ navigation }: Props) {
           label={deviceCoords ? 'Refresh Current Location' : 'Use Current Location'}
           icon={<Ionicons name="locate-outline" size={16} color={colors.textOnBrand} />}
           onPress={onUseCurrentLocation}
+          loading={locating}
           fullWidth
         />
 

@@ -30,7 +30,7 @@ export function HomeScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const prompt = useAuthPrompt();
-  const { permissionStatus, requestPermission } = useLocationContext();
+  const { permissionStatus, requestPermission, coords } = useLocationContext();
   const queryClient = useQueryClient();
 
   const banners = useFeaturedBanners();
@@ -123,9 +123,14 @@ export function HomeScreen({ navigation }: Props) {
 
           <SearchBar value="" onChangeText={() => {}} editable={false} onPress={() => navigation.navigate('Search', {})} />
 
-          <LocationSelector
-            onPress={() => (permissionStatus === 'granted' ? navigation.navigate('SelectLocation') : requestPermission())}
-          />
+          {/*
+            Always open the picker. Gating this on permission meant that once
+            location was denied the chip only re-requested it - which the OS
+            answers instantly and silently after the first refusal - so the
+            manual city search, the entire point of the fallback, was
+            unreachable. The picker itself offers both ways in.
+          */}
+          <LocationSelector onPress={() => navigation.navigate('SelectLocation')} />
           {permissionStatus === 'denied' ? (
             <View
               style={{
@@ -177,7 +182,14 @@ export function HomeScreen({ navigation }: Props) {
           onSeeAll={() => navigation.navigate('Search', { query: undefined })}
         />
 
-        {permissionStatus === 'granted' ? (
+        {/*
+          Gated on having coordinates, not on the permission. `useNearbyOffers`
+          keys off `coords`, which a manually chosen city supplies just as well
+          - so gating on permission hid this rail from anyone who declined
+          location and picked their area by hand, which is exactly the case the
+          manual picker exists to serve.
+        */}
+        {coords ? (
           <OfferRail
             title="Near You"
             subtitle="Offers close to your location"

@@ -2,6 +2,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import * as favoritesApi from '../api/favorites';
 import { queryKeys } from '../api/queryKeys';
 import { patchOfferInCache } from '../utils/offerCache';
+import { patchUnifiedOfferSaved } from '../utils/unifiedListingCache';
 import { usePush } from '../services/notifications/PushNotificationsProvider';
 import type { ListOffersParams } from '../api/offers';
 
@@ -36,10 +37,14 @@ export function useToggleFavorite() {
     },
     onMutate: async ({ offerId, isFavorite }) => {
       patchOfferInCache(queryClient, offerId, { isFavorite: !isFavorite });
+      // The unified rails key and shape their rows differently, so they need
+      // patching alongside - otherwise the card actually tapped never fills in.
+      patchUnifiedOfferSaved(queryClient, offerId, !isFavorite);
     },
     onError: (_err, { offerId, isFavorite }) => {
       // Roll back the optimistic flip on failure.
       patchOfferInCache(queryClient, offerId, { isFavorite });
+      patchUnifiedOfferSaved(queryClient, offerId, isFavorite);
     },
     onSuccess: ({ isFavorite }) => {
       // Saving an offer is the clearest moment notifications pay for
