@@ -3,7 +3,8 @@ import { Dimensions, FlatList, Pressable, ScrollView, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
-import { Screen, Chip, EmptyState, LoadingView } from '../../components/ui';
+import { Screen, Chip, EmptyState, ErrorState, LoadingView } from '../../components/ui';
+import { getApiErrorMessage, isNetworkError } from '../../api/client';
 import { SearchBar, OfferCard } from '../../components';
 import { useOffersList } from '../../hooks/useOffers';
 import { useCategories } from '../../hooks/useCategories';
@@ -140,6 +141,14 @@ export function SearchScreen({ route, navigation }: Props) {
 
       {results.isLoading ? (
         <LoadingView />
+      ) : results.isError ? (
+        /* §53's example, almost verbatim: "We're having trouble loading
+           offers. Please try again. [Retry]" - never a bare "no results". */
+        <ErrorState
+          offline={isNetworkError(results.error)}
+          message={getApiErrorMessage(results.error, 'We’re having trouble loading offers. Please try again.')}
+          onRetry={() => results.refetch()}
+        />
       ) : offers.length === 0 ? (
         <EmptyState icon="search-outline" title="No offers found" message="Try adjusting your search or filters." />
       ) : (

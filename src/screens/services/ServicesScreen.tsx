@@ -2,7 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { Dimensions, FlatList, ScrollView, Text, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
-import { Screen, Chip, EmptyState, LoadingView } from '../../components/ui';
+import { Screen, Chip, EmptyState, ErrorState, LoadingView } from '../../components/ui';
+import { getApiErrorMessage, isNetworkError } from '../../api/client';
 import { SearchBar, ServiceCard, NotificationBell } from '../../components';
 import { useServicesList } from '../../hooks/useServices';
 import { useToggleSavedService } from '../../hooks/useSavedServices';
@@ -121,6 +122,15 @@ export function ServicesScreen({ navigation }: Props) {
 
       {results.isLoading ? (
         <LoadingView />
+      ) : results.isError ? (
+        /* §52, §53: a failed request is not an empty result. Saying "no
+           services found" when the request never landed sends the customer off
+           to change filters that were never the problem. */
+        <ErrorState
+          offline={isNetworkError(results.error)}
+          message={getApiErrorMessage(results.error, 'We’re having trouble loading services. Please try again.')}
+          onRetry={() => results.refetch()}
+        />
       ) : services.length === 0 ? (
         <EmptyState icon="briefcase-outline" title="No services found" message="Try adjusting your search or filters." />
       ) : (

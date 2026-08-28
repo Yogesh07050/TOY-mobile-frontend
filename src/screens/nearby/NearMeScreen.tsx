@@ -4,7 +4,8 @@ import MapView, { Marker } from 'react-native-maps';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
-import { Screen, Button, Chip, EmptyState, LoadingView } from '../../components/ui';
+import { Screen, Button, Chip, EmptyState, ErrorState, LoadingView } from '../../components/ui';
+import { getApiErrorMessage, isNetworkError } from '../../api/client';
 import { NotificationBell } from '../../components';
 import { useNearbyListings } from '../../hooks/useDiscovery';
 import { useLocationContext } from '../../services/location/LocationContext';
@@ -117,6 +118,17 @@ export function NearMeScreen({ navigation }: Props) {
           <View style={{ flex: 1 }}>
             {nearby.isLoading ? (
               <LoadingView />
+            ) : nearby.isError ? (
+              /* §52: the location was found, the lookup failed. Distinct from
+                 "nothing nearby", which would send the customer looking for a
+                 different area rather than tapping Retry. */
+              <ErrorState
+                offline={isNetworkError(nearby.error)}
+                message={getApiErrorMessage(nearby.error, 'We’re having trouble loading what’s nearby. Please try again.')}
+                onRetry={() => nearby.refetch()}
+                secondaryLabel="Choose area"
+                onSecondary={() => navigation.navigate('SelectLocation')}
+              />
             ) : pins.length === 0 ? (
               <EmptyState icon="map-outline" title="Nothing nearby" message="No offers or services found close to you." />
             ) : !mapsAvailable ? (

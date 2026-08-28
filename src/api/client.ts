@@ -17,6 +17,29 @@ export function setSessionExpiredHandler(handler: (() => void) | null) {
   onSessionExpired = handler;
 }
 
+/**
+ * Reachability reporter (§36).
+ *
+ * The client is the only place that knows whether a request left the device,
+ * so it tells `NetworkStatusContext` rather than the other way round. A
+ * function reference rather than an import to keep the dependency pointing one
+ * way: the API layer must not import from the store.
+ */
+let reportNetwork: ((reachable: boolean) => void) | null = null;
+export function setNetworkReporter(reporter: ((reachable: boolean) => void) | null) {
+  reportNetwork = reporter;
+}
+
+/** True when axios failed before it got any answer at all - §36's offline. */
+export function isNetworkError(error: unknown): boolean {
+  return axios.isAxiosError(error) && !error.response && error.code !== 'ECONNABORTED';
+}
+
+/** True when the request was sent but nothing came back in time (§50). */
+export function isTimeoutError(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.code === 'ECONNABORTED';
+}
+
 apiClient.interceptors.request.use(async (config) => {
   const tokens = await getTokens();
   if (tokens?.accessToken) {
@@ -70,11 +93,24 @@ export function refreshSession(): Promise<string | null> {
 }
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    reportNetwork?.(true);
+    return response;
+  },
   async (error: AxiosError<ApiErrorBody>) => {
     const original = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
     const status = error.response?.status;
     const code = error.response?.data?.error?.code;
+
+    // A status means the server answered, which is proof the network works -
+    // even when the answer was a 500.
+    //
+    // A timeout is deliberately not counted as offline. It is ambiguous: an
+    // overloaded server and a dead connection look identical from here, and
+    // telling a customer on good Wi-Fi that they are offline is a worse error
+    // than saying nothing. §50 gives it its own wording instead.
+    const timedOut = error.code === 'ECONNABORTED';
+    if (!timedOut) reportNetwork?.(status !== undefined);
 
     // Any 401 on a non-refresh call is worth one silent refresh attempt (§20):
     // the customer should never see the login screen for an expired access
@@ -105,7 +141,21 @@ export function getApiErrorMessage(error: unknown, fallback = 'Something went wr
       return details.map((d) => d.message).join('\n');
     }
     if (body?.error?.message) return body.error.message;
-    if (error.message === 'Network Error') return 'No internet connection. Please check your network.';
+
+    // Three different failures, three different sentences, none of them
+    // naming a status code or a host (§53).
+    if (error.code === 'ECONNABORTED') {
+      // §50. Checked before the no-response case below, which it also matches.
+      return 'This is taking longer than expected. Please try again.';
+    }
+    if (!error.response) {
+      // §36.
+      return 'You’re offline. Some features may not be available right now. Please reconnect to continue.';
+    }
+    if (error.response.status >= 500) {
+      // §37.
+      return 'We’re having trouble connecting to Offers App. Please try again.';
+    }
   }
   return fallback;
 }

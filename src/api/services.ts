@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { idempotencyHeaders, keyFor, settle } from './idempotency';
 import type { ApiListSuccess, ApiSuccess, PaginationMeta, Service, ServiceBooking, ServiceDetail, ServiceSort } from '../types';
 
 export interface ListServicesParams {
@@ -53,7 +54,14 @@ export interface BookServicePayload {
   notes?: string;
 }
 
+/** §51 lists Create Booking; a duplicate costs the merchant a wasted slot. */
 export async function bookService(id: number, payload: BookServicePayload): Promise<ServiceBooking> {
-  const res = await apiClient.post<ApiSuccess<ServiceBooking>>(`/services/${id}/book`, payload);
+  const key = keyFor('book', id);
+  const res = await apiClient.post<ApiSuccess<ServiceBooking>>(
+    `/services/${id}/book`,
+    payload,
+    idempotencyHeaders(key),
+  );
+  settle('book', id);
   return res.data.data;
 }

@@ -11,6 +11,8 @@ import { AuthProvider } from './src/store/AuthContext';
 import { AuthPromptProvider } from './src/store/AuthPromptContext';
 import { PushNotificationsProvider } from './src/services/notifications/PushNotificationsProvider';
 import { LocationProvider } from './src/services/location/LocationContext';
+import { NetworkStatusProvider } from './src/store/NetworkStatusContext';
+import { OfflineBanner } from './src/components/ui';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { linking } from './src/navigation/linking';
 
@@ -33,6 +35,9 @@ function AppShell() {
   return (
     <NavigationContainer theme={navigationTheme} linking={linking}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
+      {/* §36. Above the navigator so it is visible on every screen, and
+          outside it so navigating does not dismiss it. */}
+      <OfflineBanner />
       <RootNavigator />
     </NavigationContainer>
   );
@@ -44,20 +49,25 @@ export default function App() {
       <SafeAreaProvider>
         <ThemeProvider>
           <QueryClientProvider client={queryClient}>
-            <LocationProvider>
-              <AuthProvider>
-                {/* Inside AuthProvider: the prompt replays a guest's held action
-                    the moment a session appears (§7). */}
-                <AuthPromptProvider>
-                  {/* Inside AuthProvider too: a device is only registered for
-                      push once there is an account to attach it to, and it is
-                      re-registered on every sign-in (Push §30, §37). */}
-                  <PushNotificationsProvider>
-                    <AppShell />
-                  </PushNotificationsProvider>
-                </AuthPromptProvider>
-              </AuthProvider>
-            </LocationProvider>
+            {/* Outermost of the app providers: every other one makes API
+                calls, and all of them feed this the same reachability
+                signal (§36). */}
+            <NetworkStatusProvider>
+              <LocationProvider>
+                <AuthProvider>
+                  {/* Inside AuthProvider: the prompt replays a guest's held
+                      action the moment a session appears (§7). */}
+                  <AuthPromptProvider>
+                    {/* Inside AuthProvider too: a device is only registered for
+                        push once there is an account to attach it to, and it is
+                        re-registered on every sign-in (Push §30, §37). */}
+                    <PushNotificationsProvider>
+                      <AppShell />
+                    </PushNotificationsProvider>
+                  </AuthPromptProvider>
+                </AuthProvider>
+              </LocationProvider>
+            </NetworkStatusProvider>
           </QueryClientProvider>
         </ThemeProvider>
       </SafeAreaProvider>

@@ -6,3 +6,5 @@ export * from './EmptyState';
 export * from './LoadingView';
 export * from './Avatar';
 export * from './Chip';
+export * from './ErrorState';
+export * from './OfflineBanner';
