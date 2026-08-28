@@ -1,5 +1,7 @@
 import type {
   AvailableDay,
+  LocationSource,
+  OpeningHours,
   BookingType,
   Offer,
   OfferDetail,
@@ -50,12 +52,22 @@ export type { Offer };
 export interface BranchFormValues {
   branchName: string;
   address?: string;
+  addressLine2?: string;
+  area?: string;
   city: string;
   state?: string;
   country?: string;
   pincode?: string;
   latitude?: number;
   longitude?: number;
+  /** Where the pin came from, so the API can record it (§24). */
+  locationSource?: LocationSource | null;
+  /** Metres of GPS uncertainty, when the device reported any (§25). */
+  locationAccuracy?: number | null;
+  placeId?: string | null;
+  /** The merchant pressed "Confirm location" on the map (§8). */
+  locationConfirmed?: boolean;
+  openingHours?: OpeningHours | null;
   contactNumber?: string;
   isPrimary?: boolean;
   status?: 'active' | 'inactive';

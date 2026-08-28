@@ -10,6 +10,7 @@ export * as followingApi from './following';
 export * as notificationsApi from './notifications';
 export * as claimsApi from './claims';
 export * as uploadsApi from './uploads';
+export * as geoApi from './geo';
 export * as analyticsApi from './analytics';
 export * as preferencesApi from './preferences';
 export * as adminOffersApi from './adminOffers';

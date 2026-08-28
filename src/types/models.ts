@@ -166,6 +166,7 @@ export interface Shop {
   email: string | null;
   websiteUrl: string | null;
   socialLinks: Record<string, string> | null;
+  openingHours: OpeningHours | null;
   status: 'active' | 'inactive';
   branchCount?: number;
   activeOfferCount?: number;
@@ -178,17 +179,32 @@ export interface Shop {
   updatedAt: string;
 }
 
+/** Where a shop's map pin came from (V3 shop-location spec §24). */
+export type LocationSource = 'ADDRESS_SEARCH' | 'MAP_PIN' | 'CURRENT_LOCATION' | 'MANUAL';
+
+/** A day is either shut or a list of open/close windows (§3). */
+export type OpeningHours = Partial<
+  Record<'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun', 'closed' | Array<{ open: string; close: string }>>
+>;
+
 export interface ShopBranch {
   id: number;
   shopId: number;
   branchName: string;
   address: string | null;
+  addressLine2: string | null;
+  area: string | null;
   city: string | null;
   state: string | null;
   country: string | null;
   pincode: string | null;
   latitude: number | null;
   longitude: number | null;
+  locationSource: LocationSource | null;
+  locationAccuracy: number | null;
+  locationConfirmedAt: string | null;
+  placeId: string | null;
+  openingHours: OpeningHours | null;
   contactNumber: string | null;
   isPrimary: boolean;
   status: 'active' | 'inactive';
@@ -198,9 +214,43 @@ export interface ShopBranch {
   updatedAt: string;
 }
 
+/** A geocoder answer, from `/geo/search` and `/geo/reverse`. */
+export interface GeoPlace {
+  latitude: number;
+  longitude: number;
+  label: string | null;
+  placeId: string | null;
+  address: {
+    addressLine1: string | null;
+    area: string | null;
+    city: string | null;
+    state: string | null;
+    country: string | null;
+    pincode: string | null;
+  };
+}
+
+/** One row of the §17 profile-completion checklist. */
+export interface ProfileChecklistItem {
+  key: string;
+  label: string;
+  required: boolean;
+  done: boolean;
+}
+
+/** §17's progress bar plus the §18 publish verdict. Shop staff only. */
+export interface ShopProfileStatus {
+  percent: number;
+  canPublish: boolean;
+  missingRequired: string[];
+  items: ProfileChecklistItem[];
+}
+
 export interface ShopDetail extends Shop {
   branches: ShopBranch[];
   rating: { count: number; average: number | null };
+  /** Present only for someone who can edit the shop. */
+  profile?: ShopProfileStatus;
 }
 
 export interface Category {

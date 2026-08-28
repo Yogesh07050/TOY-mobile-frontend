@@ -88,6 +88,8 @@ export type AdminTabParamList = {
 export type AdminStackParamList = {
   AdminTabs: undefined;
   OfferForm: { offerId?: number; duplicateFrom?: import('../types/admin').OfferFormValues } | undefined;
+  /** The shop's own profile and location (V3 shop-location spec §3, §19). */
+  ShopProfile: undefined;
   BranchList: undefined;
   BranchForm: { branchId?: number } | undefined;
   BannerList: undefined;

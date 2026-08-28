@@ -11,3 +11,4 @@ export * from './ServiceCard';
 export * from './ServiceRail';
 export * from './UnifiedListingCard';
 export * from './NotificationBell';
+export * from './MapLocationPicker';

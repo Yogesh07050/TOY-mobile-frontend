@@ -33,6 +33,18 @@ export function AdminProfileScreen({ navigation }: Props) {
   };
 
   const shopRows: Row[] = [
+    // §19: the shop's own address is edited here, not under Branches. Unlike
+    // the read-only rows below this one is a form, so it is hidden rather than
+    // marked read-only for staff who cannot save it.
+    ...(hasPermission('EDIT_SHOP')
+      ? [
+          {
+            icon: 'storefront-outline' as const,
+            label: 'Shop Profile & Location',
+            onPress: () => navigation.navigate('ShopProfile'),
+          },
+        ]
+      : []),
     {
       icon: 'business-outline',
       label: 'Branches',

@@ -26,6 +26,11 @@ export async function uploadBannerImage(fileUri: string, fileName = 'banner.jpg'
   return uploadImage('banners', fileUri, fileName, mimeType);
 }
 
+/** Shop logo / storefront picture. Optional on every plan, Free included (§14). */
+export async function uploadShopImage(fileUri: string, fileName = 'shop.jpg', mimeType = 'image/jpeg'): Promise<UploadResult> {
+  return uploadImage('shops', fileUri, fileName, mimeType);
+}
+
 export async function uploadServiceImage(fileUri: string, fileName = 'service.jpg', mimeType = 'image/jpeg'): Promise<UploadResult> {
   return uploadImage('services', fileUri, fileName, mimeType);
 }

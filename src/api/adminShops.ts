@@ -1,21 +1,35 @@
 import { apiClient } from './client';
-import type { ApiSuccess } from '../types';
+import type { ApiSuccess, OpeningHours, ShopDetail } from '../types';
 import type { BranchFormValues, ShopBranch, ShopMember } from '../types/admin';
 
 export interface ShopFormValues {
   name?: string;
   description?: string;
-  logoUrl?: string;
-  coverUrl?: string;
+  logoUrl?: string | null;
+  coverUrl?: string | null;
   contactNumber?: string;
   email?: string;
   websiteUrl?: string;
-  socialLinks?: Record<string, string>;
+  socialLinks?: Record<string, string> | null;
+  openingHours?: OpeningHours | null;
+  status?: 'active' | 'inactive';
   categoryIds?: number[];
+  /**
+   * The shop's own location (§4, §19). On update the API treats this as the
+   * shop's primary branch - editing or creating it as needed - which is what
+   * keeps "edit my address" on the profile screen instead of behind Branches.
+   */
+  primaryBranch?: Partial<BranchFormValues>;
 }
 
-export async function updateShop(shopId: number, payload: ShopFormValues) {
-  const res = await apiClient.put<ApiSuccess<unknown>>(`/shops/${shopId}`, payload);
+/** The merchant's own shop, including the §17 completion checklist. */
+export async function getShop(shopId: number): Promise<ShopDetail> {
+  const res = await apiClient.get<ApiSuccess<ShopDetail>>(`/shops/${shopId}`);
+  return res.data.data;
+}
+
+export async function updateShop(shopId: number, payload: ShopFormValues): Promise<ShopDetail> {
+  const res = await apiClient.put<ApiSuccess<ShopDetail>>(`/shops/${shopId}`, payload);
   return res.data.data;
 }
 

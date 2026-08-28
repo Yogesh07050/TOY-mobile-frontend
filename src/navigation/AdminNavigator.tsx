@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AdminTabNavigator } from './AdminTabNavigator';
 import { OfferFormScreen } from '../screens/admin/offers/OfferFormScreen';
+import { ShopProfileScreen } from '../screens/admin/profile/ShopProfileScreen';
 import { BranchListScreen } from '../screens/admin/branches/BranchListScreen';
 import { BranchFormScreen } from '../screens/admin/branches/BranchFormScreen';
 import { BannerListScreen } from '../screens/admin/banners/BannerListScreen';
@@ -27,6 +28,7 @@ export function AdminNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="AdminTabs" component={AdminTabNavigator} />
       <Stack.Screen name="OfferForm" component={OfferFormScreen} />
+      <Stack.Screen name="ShopProfile" component={ShopProfileScreen} />
       <Stack.Screen name="BranchList" component={BranchListScreen} />
       <Stack.Screen name="BranchForm" component={BranchFormScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="BannerList" component={BannerListScreen} />

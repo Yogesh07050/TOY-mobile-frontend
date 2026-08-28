@@ -5,7 +5,7 @@ import { useTheme } from '../../../theme';
 import { Screen, Button, TextField } from '../../../components/ui';
 import { useShopAdmin } from '../../../store/ShopAdminContext';
 import { useBranches, useCreateBranch, useUpdateBranch, useDeactivateBranch } from '../../../hooks/useAdminShop';
-import { useLocationContext } from '../../../services/location/LocationContext';
+import { MapLocationPicker, type PickedLocation } from '../../../components/MapLocationPicker';
 import { getApiErrorMessage, getPlanUpgradeDetails } from '../../../api/client';
 import { UpgradePrompt } from '../../../components/UpgradePrompt';
 import type { AdminStackScreenProps } from '../../../navigation/types';
@@ -22,8 +22,6 @@ export function BranchFormScreen({ route, navigation }: Props) {
   const createBranch = useCreateBranch(currentShopId);
   const updateBranch = useUpdateBranch(currentShopId);
   const deactivateBranch = useDeactivateBranch(currentShopId);
-  const { deviceCoords, refreshLocation } = useLocationContext();
-
   const [form, setForm] = useState<BranchFormValues>({ branchName: '', city: '', isPrimary: false });
   const [error, setError] = useState<string | null>(null);
   const [upgradeDetails, setUpgradeDetails] = useState<ReturnType<typeof getPlanUpgradeDetails>>(null);
@@ -33,12 +31,20 @@ export function BranchFormScreen({ route, navigation }: Props) {
       setForm({
         branchName: existing.branchName,
         address: existing.address ?? undefined,
+        addressLine2: existing.addressLine2 ?? undefined,
+        area: existing.area ?? undefined,
         city: existing.city ?? '',
         state: existing.state ?? undefined,
         country: existing.country ?? undefined,
         pincode: existing.pincode ?? undefined,
         latitude: existing.latitude ?? undefined,
         longitude: existing.longitude ?? undefined,
+        locationSource: existing.locationSource,
+        locationAccuracy: existing.locationAccuracy,
+        placeId: existing.placeId,
+        // Coordinates that are already stored were confirmed when they were
+        // saved; §8's confirmation is only owed again once the pin moves.
+        locationConfirmed: existing.latitude != null,
         contactNumber: existing.contactNumber ?? undefined,
         isPrimary: existing.isPrimary,
       });
@@ -47,13 +53,41 @@ export function BranchFormScreen({ route, navigation }: Props) {
 
   const set = <K extends keyof BranchFormValues>(key: K, value: BranchFormValues[K]) => setForm((f) => ({ ...f, [key]: value }));
 
-  const useCurrentLocation = async () => {
-    await refreshLocation();
-    if (deviceCoords) {
-      set('latitude', deviceCoords.latitude);
-      set('longitude', deviceCoords.longitude);
-    }
+  /**
+   * §8, §10: the merchant confirmed a pin, so it wins over anything the
+   * geocoder would work out from the address.
+   *
+   * Address fields are filled in only where they are still empty - what the
+   * merchant typed is what they meant, and letting the map quietly rewrite it
+   * is how a correct pin ends up attached to a wrong address.
+   */
+  const onLocationConfirmed = (location: PickedLocation) => {
+    setForm((current) => {
+      const fill = (value: string | null | undefined, existingValue?: string) =>
+        existingValue?.trim() ? existingValue : (value ?? undefined);
+      return {
+        ...current,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        locationSource: location.source,
+        locationAccuracy: location.accuracy,
+        placeId: location.placeId,
+        locationConfirmed: true,
+        address: fill(location.address?.addressLine1, current.address),
+        area: fill(location.address?.area, current.area),
+        city: current.city.trim() ? current.city : (location.address?.city ?? ''),
+        state: fill(location.address?.state, current.state),
+        country: fill(location.address?.country, current.country),
+        pincode: fill(location.address?.pincode, current.pincode),
+      };
+    });
   };
+
+  /** What to seed the picker's search box with when there is no pin yet. */
+  const addressHint =
+    form.latitude != null
+      ? ''
+      : [form.address, form.area, form.city, form.state, form.pincode].filter(Boolean).join(', ');
 
   const onSave = () => {
     setError(null);
@@ -94,6 +128,8 @@ export function BranchFormScreen({ route, navigation }: Props) {
         <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.md }}>
           <TextField label="Branch Name" value={form.branchName} onChangeText={(v) => set('branchName', v)} />
           <TextField label="Address" value={form.address ?? ''} onChangeText={(v) => set('address', v)} />
+          <TextField label="Address line 2" value={form.addressLine2 ?? ''} onChangeText={(v) => set('addressLine2', v)} />
+          <TextField label="Area / locality" value={form.area ?? ''} onChangeText={(v) => set('area', v)} placeholder="e.g. RS Puram" />
           <View style={{ flexDirection: 'row', gap: spacing.sm }}>
             <View style={{ flex: 1 }}>
               <TextField label="City" value={form.city} onChangeText={(v) => set('city', v)} />
@@ -111,10 +147,25 @@ export function BranchFormScreen({ route, navigation }: Props) {
             </View>
           </View>
 
-          <Button label="Use Current Location for Coordinates" variant="secondary" onPress={useCurrentLocation} icon={<Ionicons name="locate-outline" size={16} color={colors.text} />} />
-          {form.latitude != null ? (
+          {/*
+            §13: branches get the same map flow as the shop itself. Offers
+            attached to this branch inherit these exact coordinates for "near
+            me" and distance (§12, §20), so a rough pin costs the merchant
+            customers rather than only tidiness.
+          */}
+          <Text style={{ color: colors.text, fontSize: fontSizes.sm, fontWeight: fontWeights.semibold }}>
+            Location on the map
+          </Text>
+          <MapLocationPicker
+            latitude={form.latitude ?? null}
+            longitude={form.longitude ?? null}
+            addressHint={addressHint}
+            onConfirm={onLocationConfirmed}
+          />
+          {form.latitude == null ? (
             <Text style={{ color: colors.textMuted, fontSize: fontSizes.xs }}>
-              📍 {form.latitude.toFixed(5)}, {form.longitude?.toFixed(5)}
+              Leave this and the coordinates are worked out from the address on save. Confirm a pin
+              here to override that.
             </Text>
           ) : null}
 
