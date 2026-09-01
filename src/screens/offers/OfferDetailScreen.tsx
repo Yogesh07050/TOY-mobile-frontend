@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import { Screen, Button, Badge, LoadingView, EmptyState } from '../../components/ui';
+import { ReportListingRow } from '../../components/ReportListingRow';
 import { useOffer } from '../../hooks/useOffers';
 import { useToggleFavorite } from '../../hooks/useFavorites';
 import { useAuthPrompt } from '../../store/AuthPromptContext';
@@ -194,6 +195,12 @@ export function OfferDetailScreen({ route, navigation }: Props) {
             label="View Shop"
             variant="ghost"
             onPress={() => navigation.navigate('ShopDetail', { shopId: offer.shop.id })}
+          />
+
+          <ReportListingRow
+            kind="offer"
+            id={offer.id}
+            onReport={(kind, id) => navigation.navigate('HelpSupport', { report: kind, entityId: id })}
           />
         </View>
       </ScrollView>

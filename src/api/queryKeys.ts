@@ -21,4 +21,7 @@ export const queryKeys = {
   savedServices: (params: unknown) => ['savedServices', params] as const,
   unifiedOffers: (params: unknown) => ['unifiedOffers', params] as const,
   nearbyListings: (params: unknown) => ['nearbyListings', params] as const,
+  mySupportTickets: (params: unknown) => ['mySupportTickets', params] as const,
+  supportTicket: (id: number) => ['supportTicket', id] as const,
+  supportContact: () => ['supportContact'] as const,
 };

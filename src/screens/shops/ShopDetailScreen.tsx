@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import { Screen, Button, Badge, LoadingView, EmptyState } from '../../components/ui';
+import { ReportListingRow } from '../../components/ReportListingRow';
 import { OfferRail } from '../../components';
 import { useShop } from '../../hooks/useShops';
 import { useOffersList } from '../../hooks/useOffers';
@@ -172,6 +173,12 @@ export function ShopDetailScreen({ route, navigation }: Props) {
             ))}
           </View>
         ) : null}
+
+        <ReportListingRow
+          kind="shop"
+          id={shop.id}
+          onReport={(kind, id) => navigation.navigate('HelpSupport', { report: kind, entityId: id })}
+        />
       </ScrollView>
     </Screen>
   );

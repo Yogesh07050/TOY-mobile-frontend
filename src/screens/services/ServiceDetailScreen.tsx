@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import { Screen, Button, Badge, TextField, LoadingView, EmptyState } from '../../components/ui';
+import { ReportListingRow } from '../../components/ReportListingRow';
 import { ServiceRail } from '../../components';
 import { useService, useBookService, useTrackService, useServicesList } from '../../hooks/useServices';
 import { useToggleSavedService } from '../../hooks/useSavedServices';
@@ -270,6 +271,12 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
           ) : null}
 
           <Button label="View Shop" variant="ghost" onPress={() => navigation.navigate('ShopDetail', { shopId: service.shop.id })} />
+
+          <ReportListingRow
+            kind="service"
+            id={service.id}
+            onReport={(kind, id) => navigation.navigate('HelpSupport', { report: kind, entityId: id })}
+          />
         </View>
 
         <ServiceRail

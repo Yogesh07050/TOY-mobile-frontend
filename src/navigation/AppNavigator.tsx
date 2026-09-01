@@ -21,6 +21,11 @@ import { SelectLocationScreen } from '../screens/profile/SelectLocationScreen';
 import { EditPreferencesScreen } from '../screens/profile/EditPreferencesScreen';
 import { ThemeSettingsScreen } from '../screens/profile/ThemeSettingsScreen';
 import { DevicesScreen } from '../screens/profile/DevicesScreen';
+import { AboutScreen } from '../screens/support/AboutScreen';
+import { ContactScreen } from '../screens/support/ContactScreen';
+import { HelpSupportScreen } from '../screens/support/HelpSupportScreen';
+import { LegalScreen } from '../screens/support/LegalScreen';
+import { MySupportRequestsScreen } from '../screens/support/MySupportRequestsScreen';
 import type { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -56,6 +61,18 @@ export function AppNavigator() {
       <Stack.Screen name="EditPreferences" component={EditPreferencesScreen} />
       <Stack.Screen name="ThemeSettings" component={ThemeSettingsScreen} />
       <Stack.Screen name="Devices" component={DevicesScreen} />
+
+      {/*
+        Company, support and legal. In the main stack rather than behind the
+        Profile tab's auth check, because a guest has to be able to reach all
+        five - Support most of all, since "I can't sign in" cannot be filed
+        from behind a login.
+      */}
+      <Stack.Screen name="About" component={AboutScreen} />
+      <Stack.Screen name="Contact" component={ContactScreen} />
+      <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+      <Stack.Screen name="MySupportRequests" component={MySupportRequestsScreen} />
+      <Stack.Screen name="Legal" component={LegalScreen} />
     </Stack.Navigator>
   );
 }

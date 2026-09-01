@@ -19,6 +19,11 @@ import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import { ChangePasswordScreen } from '../screens/profile/ChangePasswordScreen';
 import { ThemeSettingsScreen } from '../screens/profile/ThemeSettingsScreen';
 import { DevicesScreen } from '../screens/profile/DevicesScreen';
+import { AboutScreen } from '../screens/support/AboutScreen';
+import { ContactScreen } from '../screens/support/ContactScreen';
+import { HelpSupportScreen } from '../screens/support/HelpSupportScreen';
+import { LegalScreen } from '../screens/support/LegalScreen';
+import { MySupportRequestsScreen } from '../screens/support/MySupportRequestsScreen';
 import type { AdminStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<AdminStackParamList>();
@@ -45,6 +50,17 @@ export function AdminNavigator() {
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="ThemeSettings" component={ThemeSettingsScreen} />
       <Stack.Screen name="Devices" component={DevicesScreen} />
+
+      {/*
+        The same five screens the customer app registers. A merchant is a user
+        too - "Subscription / Billing" and "Merchant / Shop Account" are two of
+        the support categories - and this stack is the only one they ever see.
+      */}
+      <Stack.Screen name="About" component={AboutScreen} />
+      <Stack.Screen name="Contact" component={ContactScreen} />
+      <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+      <Stack.Screen name="MySupportRequests" component={MySupportRequestsScreen} />
+      <Stack.Screen name="Legal" component={LegalScreen} />
     </Stack.Navigator>
   );
 }

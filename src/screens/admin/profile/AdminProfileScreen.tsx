@@ -69,6 +69,16 @@ export function AdminProfileScreen({ navigation }: Props) {
     { icon: 'color-palette-outline', label: 'Theme', onPress: () => navigation.navigate('ThemeSettings') },
   ];
 
+  /** The same five the customer app carries, plus the merchant's own tickets. */
+  const helpRows: Row[] = [
+    { icon: 'help-buoy-outline', label: 'Help & Support', onPress: () => navigation.navigate('HelpSupport', undefined) },
+    { icon: 'chatbubbles-outline', label: 'My Support Requests', onPress: () => navigation.navigate('MySupportRequests') },
+    { icon: 'information-circle-outline', label: 'About Offers App', onPress: () => navigation.navigate('About') },
+    { icon: 'shield-checkmark-outline', label: 'Privacy Policy', onPress: () => navigation.navigate('Legal', { document: 'privacy' }) },
+    { icon: 'document-text-outline', label: 'Terms & Conditions', onPress: () => navigation.navigate('Legal', { document: 'terms' }) },
+    { icon: 'call-outline', label: 'Contact Us', onPress: () => navigation.navigate('Contact') },
+  ];
+
   const otherRows: Row[] = [{ icon: 'log-out-outline', label: 'Logout', onPress: confirmLogout, destructive: true }];
 
   return (
@@ -85,6 +95,7 @@ export function AdminProfileScreen({ navigation }: Props) {
 
         <RowGroup title="Shop" rows={shopRows} />
         <RowGroup title="Account" rows={accountRows} />
+        <RowGroup title="Help & legal" rows={helpRows} />
         <RowGroup rows={otherRows} />
       </ScrollView>
     </Screen>

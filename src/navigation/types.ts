@@ -18,7 +18,28 @@ export type MainTabParamList = {
   Profile: undefined;
 };
 
-export type RootStackParamList = {
+/**
+ * Company, support and legal — the five screens that belong to both apps.
+ *
+ * A customer reaches them under Profile; a merchant reaches the same five from
+ * the Shop Admin profile, because "Subscription / Billing" and "Merchant /
+ * Shop Account" are support categories and a merchant is a user too. Written
+ * once and spread into both stacks so the two can never drift apart.
+ */
+export type SupportStackParamList = {
+  About: undefined;
+  Contact: undefined;
+  /**
+   * `report`/`entityId` arrive from the "Report this…" row on an offer,
+   * service or shop, and open the form on the report category with the listing
+   * already attached.
+   */
+  HelpSupport: { report?: import('../types').ReportableEntity; entityId?: number } | undefined;
+  MySupportRequests: undefined;
+  Legal: { document: 'privacy' | 'terms' };
+};
+
+export type RootStackParamList = SupportStackParamList & {
   MainTabs: undefined;
   // Guest browsing §19/§21: a guest is already inside the app, so the auth
   // screens have to be reachable from it rather than only before it.
@@ -75,6 +96,32 @@ export interface AuthScreenProps<T extends keyof AuthStackParamList = 'Login'> {
   route?: { params?: AuthStackParamList[T] };
 }
 
+/**
+ * How the support and legal screens navigate between each other.
+ *
+ * They are registered in both the customer RootStack and the merchant
+ * AdminStack, which are separate navigators - `RootNavigator` renders one or
+ * the other, never both - so a component typed against one stack's param list
+ * cannot be mounted in the other. The same problem the authentication screens
+ * have above, solved the same way: a structural type naming only the keys
+ * these screens actually navigate to, which both stacks satisfy.
+ */
+export interface SupportNavigation {
+  navigate: {
+    (screen: 'About' | 'Contact' | 'MySupportRequests'): void;
+    (screen: 'HelpSupport', params?: SupportStackParamList['HelpSupport']): void;
+    (screen: 'Legal', params: SupportStackParamList['Legal']): void;
+  };
+  /** Used from the confirmation screen, so Back does not return to the form. */
+  replace: (screen: 'MySupportRequests') => void;
+  goBack: () => void;
+}
+
+export interface SupportScreenProps<T extends keyof SupportStackParamList = 'About'> {
+  navigation: SupportNavigation;
+  route: { params?: SupportStackParamList[T] };
+}
+
 // ---- Shop Admin (V3) --------------------------------------------------------
 
 export type AdminTabParamList = {
@@ -85,7 +132,7 @@ export type AdminTabParamList = {
   AdminProfile: undefined;
 };
 
-export type AdminStackParamList = {
+export type AdminStackParamList = SupportStackParamList & {
   AdminTabs: undefined;
   OfferForm: { offerId?: number; duplicateFrom?: import('../types/admin').OfferFormValues } | undefined;
   /** The shop's own profile and location (V3 shop-location spec §3, §19). */

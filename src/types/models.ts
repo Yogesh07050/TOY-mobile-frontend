@@ -567,3 +567,68 @@ export interface UnifiedListing {
   shop: { id: number; name: string; slug: string; logoUrl: string | null };
   category: { id: number; name: string; slug: string } | null;
 }
+
+// ---- Support ----------------------------------------------------------------
+
+export type SupportStatus = 'open' | 'in_progress' | 'waiting_on_customer' | 'resolved' | 'closed';
+export type SupportPriority = 'low' | 'normal' | 'high';
+export type SupportUserType = 'customer' | 'merchant' | 'guest';
+/** What a content report can be filed against. Mirrors the API's `REPORTABLE`. */
+export type ReportableEntity = 'offer' | 'service' | 'shop' | 'service_offer';
+
+export interface SupportMessage {
+  id: number;
+  authorRole: 'customer' | 'support';
+  /** Null for a message left by a guest, who has no account to name. */
+  authorName: string | null;
+  body: string;
+  /** Always false in a customer's copy — the API strips internal notes. */
+  isInternal: boolean;
+  createdAt: string;
+}
+
+export interface SupportTicket {
+  id: number;
+  /** "SUP-10248". What a customer quotes; it authorises nothing. */
+  reference: string;
+  userId: number | null;
+  name: string;
+  email: string;
+  phone: string | null;
+  userType: SupportUserType;
+  category: string;
+  subject: string;
+  description: string;
+  attachmentUrl: string | null;
+  entityType: string | null;
+  entityId: number | null;
+  status: SupportStatus;
+  priority: SupportPriority;
+  assignedTo: number | null;
+  assigneeName: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  /** Present only on the single-ticket read, not in a list. */
+  messages?: SupportMessage[];
+}
+
+export interface SupportTicketPayload {
+  name: string;
+  email: string;
+  phone?: string | null;
+  userType: SupportUserType;
+  category: string;
+  subject: string;
+  description: string;
+  attachmentUrl?: string | null;
+  entityType?: ReportableEntity | null;
+  entityId?: number | null;
+}
+
+/** Published contact details, so a number can change without a store release. */
+export interface SupportContact {
+  email: string;
+  phones: string[];
+  categories: string[];
+}

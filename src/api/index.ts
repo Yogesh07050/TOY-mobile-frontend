@@ -24,3 +24,4 @@ export * as adminServiceOffersApi from './adminServiceOffers';
 export * as serviceOfferClaimsApi from './serviceOfferClaims';
 export * as savedServicesApi from './savedServices';
 export * as adminServiceAnalyticsApi from './adminServiceAnalytics';
+export * as supportApi from './support';

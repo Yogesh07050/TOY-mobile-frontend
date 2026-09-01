@@ -46,17 +46,53 @@ export function ProfileScreen({ navigation }: Props) {
     { icon: 'log-out-outline', label: 'Logout', onPress: confirmLogout, destructive: true },
   ];
 
-  // §23: a guest gets the welcome, not an empty profile. The rows below all
-  // read or write account data, so there is nothing here to show without one.
+  /**
+   * Help & legal. Built here rather than inside the signed-in branch because
+   * both audiences get exactly this list: none of these rows reads account
+   * data, and the two that matter most to somebody without an account are
+   * Support ("I can't sign in") and Privacy (read before deciding to sign up).
+   *
+   * "My support requests" is the one exception, since a guest's tickets have
+   * no owner and there is nothing to list.
+   */
+  const helpRows: Row[] = [
+    { icon: 'help-buoy-outline', label: 'Help & Support', onPress: () => navigation.navigate('HelpSupport', undefined) },
+    ...(isAuthenticated
+      ? [
+          {
+            icon: 'chatbubbles-outline' as const,
+            label: 'My Support Requests',
+            onPress: () => navigation.navigate('MySupportRequests'),
+          },
+        ]
+      : []),
+    { icon: 'information-circle-outline', label: 'About Offers App', onPress: () => navigation.navigate('About') },
+    { icon: 'shield-checkmark-outline', label: 'Privacy Policy', onPress: () => navigation.navigate('Legal', { document: 'privacy' }) },
+    { icon: 'document-text-outline', label: 'Terms & Conditions', onPress: () => navigation.navigate('Legal', { document: 'terms' }) },
+    { icon: 'call-outline', label: 'Contact Us', onPress: () => navigation.navigate('Contact') },
+  ];
+
+  // §23: a guest gets the welcome rather than an empty profile - every account
+  // row above reads or writes data they do not have. But the welcome is no
+  // longer the whole screen: Help, About, Privacy, Terms and Contact have to
+  // stay reachable without an account, so they sit below it.
   if (!isAuthenticated) {
     return (
       <Screen>
-        <GuestGate
-          icon="person-outline"
-          title="Welcome to Offers App"
-          message="Discover offers and services near you. Log in to save what you like, follow shops and track your savings."
-          browseHint="Continue browsing as Guest — Offers, Services and Near Me need no account."
-        />
+        {/* `flexGrow` rather than `flex`: GuestGate centres itself with
+            `flex: 1`, which needs the content container to fill the screen,
+            while the list below still pushes the page taller when it has to. */}
+        <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: spacing.xl }}>
+          <GuestGate
+            icon="person-outline"
+            title="Welcome to Offers App"
+            message="Discover offers and services near you. Log in to save what you like, follow shops and track your savings."
+            browseHint="Continue browsing as Guest — Offers, Services and Near Me need no account."
+          />
+          <View style={{ padding: spacing.md }}>
+            <RowGroup title="Help & legal" rows={helpRows} />
+          </View>
+        </ScrollView>
       </Screen>
     );
   }
@@ -75,6 +111,7 @@ export function ProfileScreen({ navigation }: Props) {
 
         <RowGroup title="Account" rows={accountRows} />
         <RowGroup title="Preferences" rows={preferenceRows} />
+        <RowGroup title="Help & legal" rows={helpRows} />
         <RowGroup rows={otherRows} />
 
         <Text style={{ color: colors.textSubtle, fontSize: fontSizes.xs, textAlign: 'center' }}>OffersOffer · v1.0.0</Text>
