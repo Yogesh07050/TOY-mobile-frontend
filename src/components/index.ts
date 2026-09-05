@@ -10,6 +10,7 @@ export * from './PreferenceEditorForm';
 export * from './ServiceCard';
 export * from './ServiceRail';
 export * from './UnifiedListingCard';
+export * from './FeaturedRail';
 export * from './NotificationBell';
 export * from './MapLocationPicker';
 export * from './ReportListingRow';

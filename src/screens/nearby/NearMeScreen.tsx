@@ -6,11 +6,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { Screen, Button, Chip, EmptyState, ErrorState, LoadingView } from '../../components/ui';
 import { getApiErrorMessage, isNetworkError } from '../../api/client';
-import { NotificationBell } from '../../components';
-import { useNearbyListings } from '../../hooks/useDiscovery';
+import { NotificationBell, FeaturedRail } from '../../components';
+import { useRankedNearMe } from '../../hooks/useVisibility';
+import { toUnifiedListing } from '../../utils/rankedListing';
+import { trackListingOpen } from '../../services/analytics/visibilityService';
 import { useLocationContext } from '../../services/location/LocationContext';
 import type { MainTabScreenProps } from '../../navigation/types';
-import type { UnifiedListing } from '../../types';
+import type { FeaturedPlacement, UnifiedListing } from '../../types';
 
 type Props = MainTabScreenProps<'NearMe'>;
 
@@ -35,9 +37,43 @@ export function NearMeScreen({ navigation }: Props) {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [selected, setSelected] = useState<UnifiedListing | null>(null);
 
-  const nearby = useNearbyListings({ type: typeFilter, limit: 50 });
-  const listings = nearby.data ?? [];
+  /**
+   * §14's Near Me flow, end to end: nearby shops, active listings, distance,
+   * relevance, subscription priority, then fairness and rotation.
+   *
+   * This replaces the plain distance sort rather than sitting beside it, which
+   * is the right call here and was not on the home screen: "Near Me" has one
+   * job, and two rails both claiming to be the nearby ones would be a screen
+   * that contradicts itself.
+   */
+  const nearby = useRankedNearMe(50);
+  const ranked = nearby.data?.items ?? [];
+  const featured = nearby.data?.featured ?? [];
+
+  // The map and the type filter both work in the older shape, and the card
+  // does too - so the ranked results are adapted once here rather than
+  // threading a second listing type through the whole screen.
+  const listings = ranked
+    .filter((listing) =>
+      typeFilter === 'all'
+        ? true
+        : typeFilter === 'product'
+          ? listing.listingType === 'offer'
+          : listing.listingType === 'service_offer',
+    )
+    .map(toUnifiedListing);
   const pins = listings.filter((l) => l.latitude != null && l.longitude != null);
+
+  const openFeatured = (placement: FeaturedPlacement, position: number) => {
+    trackListingOpen(placement, { surface: 'NEAR_ME' }, position);
+    if (placement.listingType === 'shop') {
+      navigation.navigate('ShopDetail', { shopId: placement.id });
+      return;
+    }
+    if (placement.listingType === 'offer') {
+      navigation.navigate('OfferDetail', { offerId: placement.id });
+    }
+  };
 
   /*
    * Android refuses to construct a MapView without a Google Maps API key, and
@@ -109,6 +145,18 @@ export function NearMeScreen({ navigation }: Props) {
         </View>
       ) : (
         <>
+          {/*
+            §11's Near Me Featured, above the map rather than inside it. A
+            promoted listing rendered as a map pin would be indistinguishable
+            from an organic one at a glance, which is exactly what §11 forbids -
+            a pin has nowhere to carry a "Promoted" label a customer will read.
+          */}
+          {featured.length > 0 ? (
+            <View style={{ marginBottom: spacing.xs }}>
+              <FeaturedRail placements={featured} onPress={openFeatured} />
+            </View>
+          ) : null}
+
           <View style={{ flexDirection: 'row', gap: spacing.xs, paddingHorizontal: spacing.md, marginBottom: spacing.xs }}>
             {TYPE_CHIPS.map((chip) => (
               <Chip key={chip.value} label={chip.label} selected={typeFilter === chip.value} onPress={() => setTypeFilter(chip.value)} />

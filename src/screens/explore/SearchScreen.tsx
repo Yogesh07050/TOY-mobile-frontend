@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import { Screen, Chip, EmptyState, ErrorState, LoadingView } from '../../components/ui';
 import { getApiErrorMessage, isNetworkError } from '../../api/client';
-import { SearchBar, OfferCard } from '../../components';
+import { SearchBar, OfferCard, UnifiedListingCard } from '../../components';
 import { useOffersList } from '../../hooks/useOffers';
 import { useCategories } from '../../hooks/useCategories';
 import { useToggleFavorite } from '../../hooks/useFavorites';
@@ -13,9 +13,12 @@ import { useAuthPrompt } from '../../store/AuthPromptContext';
 import { useLocationContext } from '../../services/location/LocationContext';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { trackEvent } from '../../services/analytics/analyticsService';
+import { trackListingOpen } from '../../services/analytics/visibilityService';
+import { useRankedSearch } from '../../hooks/useVisibility';
+import { toUnifiedListing } from '../../utils/rankedListing';
 import type { RootStackScreenProps } from '../../navigation/types';
 import type { OfferSort } from '../../api/offers';
-import type { Offer } from '../../types';
+import type { Offer, RankedListing } from '../../types';
 
 type Props = RootStackScreenProps<'Search'>;
 
@@ -34,7 +37,19 @@ const DISCOUNT_OPTIONS: Array<{ label: string; value: number | undefined }> = [
   { label: '50%+', value: 50 },
 ];
 
-const SORT_OPTIONS: Array<{ label: string; value: OfferSort }> = [
+/**
+ * `'relevance'` is not an `OfferSort` - it is the absence of a sort.
+ *
+ * §13 orders search by relevance, location, validity, preference, quality,
+ * engagement, subscription and freshness together, which is a ranking rather
+ * than a column to order by. Picking any other chip is the customer overriding
+ * that with one signal they have asked for explicitly, and those still go to
+ * the older listing endpoint that can honour them.
+ */
+type SearchSort = OfferSort | 'relevance';
+
+const SORT_OPTIONS: Array<{ label: string; value: SearchSort }> = [
+  { label: 'Best match', value: 'relevance' },
   { label: 'Recommended', value: 'newest' },
   { label: 'Nearest', value: 'nearest' },
   { label: 'Ending Soon', value: 'endingSoon' },
@@ -60,7 +75,7 @@ export function SearchScreen({ route, navigation }: Props) {
   const [distance, setDistance] = useState<number | undefined>(undefined);
   const [minDiscount, setMinDiscount] = useState<number | undefined>(undefined);
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
-  const [sort, setSort] = useState<OfferSort>('newest');
+  const [sort, setSort] = useState<SearchSort>('relevance');
 
   const debouncedQuery = useDebouncedValue(query, 400);
 
@@ -72,13 +87,34 @@ export function SearchScreen({ route, navigation }: Props) {
       longitude: distance ? coords?.longitude : sort === 'nearest' ? coords?.longitude : undefined,
       minDiscount,
       categoryId,
-      sort,
+      // 'relevance' is handled by the ranked endpoint below, so the fallback
+      // here only matters while that query is disabled.
+      sort: sort === 'relevance' ? ('newest' as OfferSort) : sort,
       limit: 20,
     }),
     [debouncedQuery, distance, minDiscount, categoryId, sort, coords],
   );
 
-  const results = useOffersList(params);
+  /**
+   * Two search paths, and only one runs at a time.
+   *
+   * Ranked search is the default because §13 says search should not simply sort
+   * by any single field. The older endpoint stays for the explicit sorts, which
+   * the ranked one deliberately cannot express - "Highest discount" is a
+   * customer overriding the ranking, not a ranking factor to tune.
+   */
+  const useRanked = sort === 'relevance' && debouncedQuery.trim().length > 0;
+  const ranked = useRankedSearch(debouncedQuery.trim(), 20, useRanked);
+  const results = useOffersList(params, !useRanked);
+
+  const openRanked = (listing: RankedListing, position: number) => {
+    trackListingOpen(listing, { surface: 'SEARCH', term: debouncedQuery.trim() }, position);
+    if (listing.listingType === 'service_offer' && listing.serviceId != null) {
+      navigation.navigate('ServiceDetail', { serviceId: listing.serviceId });
+      return;
+    }
+    navigation.navigate('OfferDetail', { offerId: listing.id });
+  };
 
   React.useEffect(() => {
     if (debouncedQuery.trim()) {
@@ -87,6 +123,8 @@ export function SearchScreen({ route, navigation }: Props) {
   }, [debouncedQuery]);
 
   const offers = results.data?.pages.flatMap((p) => p.offers) ?? [];
+  const rankedItems = ranked.data?.items ?? [];
+  const active = useRanked ? ranked : results;
   const cardWidth = (Dimensions.get('window').width - H_PADDING * 2 - GAP) / NUM_COLUMNS;
 
   // §5: browsing and filtering stay open; only the save asks for an account.
@@ -139,18 +177,33 @@ export function SearchScreen({ route, navigation }: Props) {
         ) : null}
       </View>
 
-      {results.isLoading ? (
+      {active.isLoading ? (
         <LoadingView />
-      ) : results.isError ? (
+      ) : active.isError ? (
         /* §53's example, almost verbatim: "We're having trouble loading
            offers. Please try again. [Retry]" - never a bare "no results". */
         <ErrorState
-          offline={isNetworkError(results.error)}
-          message={getApiErrorMessage(results.error, 'We’re having trouble loading offers. Please try again.')}
-          onRetry={() => results.refetch()}
+          offline={isNetworkError(active.error)}
+          message={getApiErrorMessage(active.error, 'We’re having trouble loading offers. Please try again.')}
+          onRetry={() => active.refetch()}
         />
-      ) : offers.length === 0 ? (
+      ) : (useRanked ? rankedItems.length : offers.length) === 0 ? (
         <EmptyState icon="search-outline" title="No offers found" message="Try adjusting your search or filters." />
+      ) : useRanked ? (
+        <FlatList
+          data={rankedItems}
+          keyExtractor={(item) => `${item.listingType}-${item.id}`}
+          numColumns={NUM_COLUMNS}
+          contentContainerStyle={{ padding: H_PADDING, gap: GAP }}
+          columnWrapperStyle={{ gap: GAP }}
+          renderItem={({ item, index }) => (
+            <UnifiedListingCard
+              listing={toUnifiedListing(item)}
+              width={cardWidth}
+              onPress={() => openRanked(item, index + 1)}
+            />
+          )}
+        />
       ) : (
         <FlatList
           data={offers}

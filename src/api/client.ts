@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL } from '../utils/config';
 import { deviceHeaders } from '../utils/device';
+import { visibilityHeaders } from '../utils/session';
 import { clearTokens, getTokens, setTokens } from '../services/auth/tokenStorage';
 import type { ApiErrorBody, AuthResult } from '../types';
 import type { PlanUpgradeRequiredDetails } from '../types/admin';
@@ -45,6 +46,13 @@ apiClient.interceptors.request.use(async (config) => {
   if (tokens?.accessToken) {
     config.headers.Authorization = `Bearer ${tokens.accessToken}`;
   }
+  // Visibility §18/§25: the frequency caps are "per customer/session" and a
+  // guest has no user id, so the client says which session and which install
+  // this is. Neither is a credential - the backend stores both as salted
+  // hashes and only ever compares them within a window.
+  const identity = await visibilityHeaders();
+  config.headers['X-Session-Id'] = identity['X-Session-Id'];
+  config.headers['X-Device-Id'] = identity['X-Device-Id'];
   return config;
 });
 

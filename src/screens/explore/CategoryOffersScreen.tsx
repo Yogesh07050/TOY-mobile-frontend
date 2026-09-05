@@ -4,12 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import { Screen, EmptyState, LoadingView } from '../../components/ui';
-import { OfferCard } from '../../components';
+import { OfferCard, FeaturedRail } from '../../components';
 import { useOffersList } from '../../hooks/useOffers';
 import { useToggleFavorite } from '../../hooks/useFavorites';
 import { useAuthPrompt } from '../../store/AuthPromptContext';
+import { usePlacements } from '../../hooks/useVisibility';
+import { trackListingOpen } from '../../services/analytics/visibilityService';
 import type { RootStackScreenProps } from '../../navigation/types';
-import type { Offer } from '../../types';
+import type { FeaturedPlacement, Offer } from '../../types';
 
 type Props = RootStackScreenProps<'CategoryOffers'>;
 
@@ -25,6 +27,28 @@ export function CategoryOffersScreen({ route, navigation }: Props) {
   const prompt = useAuthPrompt();
 
   const results = useOffersList({ categoryId, sort: 'newest', limit: 20 });
+
+  /**
+   * §11's "Featured in Clothing" - the category's own promotional space.
+   *
+   * The rail is requested on its own rather than through the ranked category
+   * feed, because this screen's organic list is already paginated and working;
+   * swapping it wholesale would be a bigger change than the promotional space
+   * is worth. The placement endpoint gives the featured half without touching
+   * the other.
+   */
+  const featured = usePlacements('CATEGORY_FEATURED', 4, categoryId);
+
+  const openFeatured = (placement: FeaturedPlacement, position: number) => {
+    trackListingOpen(placement, { surface: 'CATEGORY' }, position);
+    if (placement.listingType === 'shop') {
+      navigation.navigate('ShopDetail', { shopId: placement.id });
+      return;
+    }
+    if (placement.listingType === 'offer') {
+      navigation.navigate('OfferDetail', { offerId: placement.id });
+    }
+  };
   const offers = results.data?.pages.flatMap((p) => p.offers) ?? [];
   const cardWidth = (Dimensions.get('window').width - H_PADDING * 2 - GAP) / NUM_COLUMNS;
 
@@ -44,6 +68,12 @@ export function CategoryOffersScreen({ route, navigation }: Props) {
         </Pressable>
         <Text style={{ color: colors.text, fontSize: fontSizes.xl, fontWeight: fontWeights.bold }}>{categoryName}</Text>
       </View>
+
+      <FeaturedRail
+        title={`Featured in ${categoryName}`}
+        placements={featured.data ?? []}
+        onPress={openFeatured}
+      />
 
       {results.isLoading ? (
         <LoadingView />

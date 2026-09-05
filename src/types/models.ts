@@ -632,3 +632,109 @@ export interface SupportContact {
   phones: string[];
   categories: string[];
 }
+
+// ---- Visibility & Promotion System -----------------------------------------
+//
+// Mirrors `src/config/visibility.js` and the customer half of the `/visibility`
+// API. Only the customer-facing vocabulary lives here: the merchant and Super
+// Admin shapes belong to the web admin, and duplicating them would be three
+// copies of the same contract to keep honest.
+
+export type VisibilitySurface = 'SEARCH' | 'NEAR_ME' | 'HOME' | 'CATEGORY' | 'ENDING_SOON';
+
+export type PlacementType =
+  | 'HOME_FEATURED'
+  | 'CATEGORY_FEATURED'
+  | 'NEAR_ME_FEATURED'
+  | 'SEASONAL_CAMPAIGN'
+  | 'ENDING_SOON_FEATURED';
+
+export type VisibilityListingType = 'offer' | 'service_offer' | 'shop';
+
+/**
+ * Events the client is allowed to post (§32).
+ *
+ * SAVE, CLAIM and REDEMPTION are absent on purpose: §2.4 makes a verified
+ * redemption the strongest ranking signal on the platform, so it is only ever
+ * written server-side by the flow that performs it. A client that could post
+ * one could rank itself.
+ */
+export type ClientVisibilityEvent =
+  | 'IMPRESSION'
+  | 'VIEW'
+  | 'SEARCH_CLICK'
+  | 'PROFILE_VIEW'
+  | 'DIRECTIONS_CLICK'
+  | 'FEATURED_IMPRESSION'
+  | 'FEATURED_CLICK';
+
+/**
+ * One promoted card (§7, §11).
+ *
+ * Carries its campaign and slot so the client can label it as promotional -
+ * §11 requires featured content to be clearly distinguishable from organic
+ * results, and a card that does not know it is promoted cannot say so.
+ */
+export interface FeaturedPlacement {
+  featured: true;
+  placementType: PlacementType;
+  slotId: number;
+  slotCode: string;
+  featuredCampaignId: number;
+  campaignName: string;
+  promotionalMessage: string | null;
+  listingType: VisibilityListingType;
+  id: number;
+  headline: string;
+  imageUrl: string | null;
+  categoryId: number | null;
+  shop: { id: number; name: string; slug: string; logoUrl: string | null };
+  startsAt: string;
+  endsAt: string;
+}
+
+/** A ranked organic listing. Shaped like `UnifiedListing`, with its own type tag. */
+export interface RankedListing {
+  id: number;
+  listingType: VisibilityListingType;
+  serviceId: number | null;
+  title: string;
+  offerText: string | null;
+  discountType: 'percentage' | 'flat' | 'none';
+  discountValue: number | null;
+  originalPrice: number | null;
+  finalPrice: number | null;
+  startDate: string;
+  endDate: string;
+  imageUrl: string | null;
+  distanceKm: number | null;
+  latitude: number | null;
+  longitude: number | null;
+  isSaved: boolean;
+  featured: false;
+  shop: { id: number; name: string; slug: string; logoUrl: string | null };
+  category: { id: number; name: string; slug: string } | null;
+  /** Present only on the Ending Soon surface (§12). */
+  endingBucket?: { key: string; label: string };
+}
+
+export interface VisibilityFeed {
+  featured: FeaturedPlacement[];
+  items: RankedListing[];
+}
+
+/** §21's wording, served by the API so no screen composes its own promise. */
+export interface VisibilityPromise {
+  headline: string;
+  explanation: string;
+  disclaimer: string;
+}
+
+export interface VisibilityMeta {
+  events: { all: string[]; client: ClientVisibilityEvent[] };
+  surfaces: VisibilitySurface[];
+  placementTypes: PlacementType[];
+  visibilityLevels: { key: string; rank: number; label: string }[];
+  promise: VisibilityPromise;
+  defaultRadiusKm: number;
+}

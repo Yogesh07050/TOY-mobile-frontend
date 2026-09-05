@@ -13,6 +13,7 @@ import { useLocationContext } from '../../services/location/LocationContext';
 import { trackOffer } from '../../services/analytics/analyticsService';
 import { formatDate, formatDistance, formatExpiryLabel, formatOfferHeadline, isEndingUrgently } from '../../utils/format';
 import { offerDeepLink, openDirections } from '../../utils/links';
+import { trackDirectionsClick } from '../../services/analytics/visibilityService';
 import type { RootStackScreenProps } from '../../navigation/types';
 
 type Props = RootStackScreenProps<'OfferDetail'>;
@@ -77,7 +78,10 @@ export function OfferDetailScreen({ route, navigation }: Props) {
 
   const onDirections = () => {
     if (primaryBranch?.latitude && primaryBranch?.longitude) {
-      openDirections(primaryBranch.latitude, primaryBranch.longitude, offer.shop.name);
+      // §2.4 treats a directions tap as one of the strongest intent signals
+      // there is - it is the last thing someone does before walking to a shop.
+      trackDirectionsClick(offer.shop.id, primaryBranch.id);
+      void openDirections(primaryBranch.latitude, primaryBranch.longitude, offer.shop.name);
     }
   };
 

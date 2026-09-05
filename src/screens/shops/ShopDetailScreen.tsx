@@ -15,6 +15,7 @@ import { useAuthPrompt } from '../../store/AuthPromptContext';
 import { useLocationContext } from '../../services/location/LocationContext';
 import { formatDistance } from '../../utils/format';
 import { shopDeepLink, openDirections } from '../../utils/links';
+import { trackDirectionsClick, trackProfileView } from '../../services/analytics/visibilityService';
 import type { RootStackScreenProps } from '../../navigation/types';
 import type { Offer } from '../../types';
 
@@ -32,6 +33,18 @@ export function ShopDetailScreen({ route, navigation }: Props) {
   const offers = useOffersList({ shopId: typeof shopId === 'number' ? shopId : undefined, shop: typeof shopId === 'string' ? shopId : undefined, sort: 'newest', limit: 10 });
   const toggleFavorite = useToggleFavorite();
   const toggleFollow = useToggleShopFollow();
+
+  /**
+   * §15's "profile visits" and §2.4's engagement signal.
+   *
+   * Keyed on the resolved numeric id rather than the route param, because the
+   * screen also opens by slug - reporting a visit against a slug would produce
+   * a listing id no aggregate could ever join to.
+   */
+  const resolvedShopId = shop?.id;
+  React.useEffect(() => {
+    if (resolvedShopId) trackProfileView(resolvedShopId);
+  }, [resolvedShopId]);
 
   if (isLoading) return <LoadingView />;
   if (isError || !shop) {
@@ -125,7 +138,10 @@ export function ShopDetailScreen({ route, navigation }: Props) {
                 label="Directions"
                 variant="secondary"
                 icon={<Ionicons name="navigate-outline" size={16} color={colors.text} />}
-                onPress={() => openDirections(nearestBranch.latitude!, nearestBranch.longitude!, shop.name)}
+                onPress={() => {
+                  trackDirectionsClick(shop.id, nearestBranch.id);
+                  void openDirections(nearestBranch.latitude!, nearestBranch.longitude!, shop.name);
+                }}
               />
             ) : null}
           </View>
@@ -165,7 +181,13 @@ export function ShopDetailScreen({ route, navigation }: Props) {
                   </Text>
                 </View>
                 {branch.latitude && branch.longitude ? (
-                  <Pressable onPress={() => openDirections(branch.latitude!, branch.longitude!, branch.branchName)} hitSlop={8}>
+                  <Pressable
+                    onPress={() => {
+                      trackDirectionsClick(shop.id, branch.id);
+                      void openDirections(branch.latitude!, branch.longitude!, branch.branchName);
+                    }}
+                    hitSlop={8}
+                  >
                     <Ionicons name="navigate-outline" size={18} color={colors.brand} />
                   </Pressable>
                 ) : null}

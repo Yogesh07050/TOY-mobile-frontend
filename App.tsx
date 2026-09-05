@@ -1,5 +1,6 @@
 import 'react-native-gesture-handler';
 import React from 'react';
+import { AppState } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -15,6 +16,8 @@ import { NetworkStatusProvider } from './src/store/NetworkStatusContext';
 import { OfflineBanner } from './src/components/ui';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { linking } from './src/navigation/linking';
+import { primeSessionIdentity } from './src/utils/session';
+import { flushVisibility } from './src/services/analytics/visibilityService';
 
 function AppShell() {
   const { colors, isDark } = useTheme();
@@ -44,6 +47,20 @@ function AppShell() {
 }
 
 export default function App() {
+  React.useEffect(() => {
+    // Read the install id out of storage before the first request needs it, so
+    // a cold start's opening screen is not reported without one (§18).
+    primeSessionIdentity();
+
+    // Visibility events are queued and flushed on a timer, so a customer who
+    // backgrounds the app mid-interval would otherwise lose that screen's
+    // impressions - which is exactly the screen they engaged with least.
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') flushVisibility();
+    });
+    return () => subscription.remove();
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

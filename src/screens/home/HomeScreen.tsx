@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import { Screen } from '../../components/ui';
-import { SearchBar, LocationSelector, BannerCarousel, OfferRail, SectionHeader, CategoryCard, UnifiedListingCard } from '../../components';
+import { SearchBar, LocationSelector, BannerCarousel, OfferRail, SectionHeader, CategoryCard, UnifiedListingCard, FeaturedRail } from '../../components';
 import { useAuth } from '../../store/AuthContext';
 import { useAuthPrompt } from '../../store/AuthPromptContext';
 import { useLocationContext } from '../../services/location/LocationContext';
@@ -17,12 +17,15 @@ import {
   useCategories,
   useToggleFavorite,
   useUnifiedOffers,
+  useRankedFeed,
 } from '../../hooks';
 import { useOffersList } from '../../hooks/useOffers';
 import { trackBanner, trackEvent } from '../../services/analytics/analyticsService';
+import { trackListingOpen } from '../../services/analytics/visibilityService';
+import { toUnifiedListing } from '../../utils/rankedListing';
 import { getTimeOfDayGreeting } from '../../utils/greeting';
 import type { MainTabScreenProps } from '../../navigation/types';
-import type { Offer, Banner, Category, UnifiedListing } from '../../types';
+import type { Offer, Banner, Category, UnifiedListing, FeaturedPlacement, RankedListing } from '../../types';
 
 type Props = MainTabScreenProps<'Offers'>;
 
@@ -47,9 +50,30 @@ export function HomeScreen({ navigation }: Props) {
   const categories = useCategories();
   const toggleFavorite = useToggleFavorite();
   const unifiedOffers = useUnifiedOffers({}, 10);
+  /**
+   * The ranked home feed (§4) and its Home Featured rail (§11).
+   *
+   * Added beside the existing rails rather than replacing them: those are
+   * single-signal lists a customer recognises ("Ending Soon", "Popular"), while
+   * this is the weighted blend of all nine factors. Both have a place on a home
+   * screen, and swapping one for the other in a single release would change
+   * every rail at once with no way to tell which change did what.
+   */
+  const rankedFeed = useRankedFeed(10, 5);
+
+  // §32's impressions are recorded server-side, by the endpoint that served
+  // this page - see `visibilityAnalytics.recordImpressions`. Reporting them
+  // from here as well counted every card twice, and three times once the feed
+  // re-fetched with the customer's location. The client reports only what the
+  // server cannot see: which card was tapped.
 
   const refreshing =
-    banners.isRefetching || endingSoon.isRefetching || nearby.isRefetching || recommended.isRefetching || popular.isRefetching;
+    banners.isRefetching ||
+    endingSoon.isRefetching ||
+    nearby.isRefetching ||
+    recommended.isRefetching ||
+    popular.isRefetching ||
+    rankedFeed.isRefetching;
 
   const onRefresh = useCallback(() => {
     banners.refetch();
@@ -59,7 +83,8 @@ export function HomeScreen({ navigation }: Props) {
     favoriteShopOffers.refetch();
     popular.refetch();
     categories.refetch();
-  }, [banners, endingSoon, nearby, recommended, favoriteShopOffers, popular, categories]);
+    rankedFeed.refetch();
+  }, [banners, endingSoon, nearby, recommended, favoriteShopOffers, popular, categories, rankedFeed]);
 
   const openOffer = (offer: Offer) => navigation.navigate('OfferDetail', { offerId: offer.id });
   const openRecommendedOffer = (offer: Offer) => {
@@ -84,6 +109,30 @@ export function HomeScreen({ navigation }: Props) {
       onSettled: () => queryClient.invalidateQueries({ queryKey: ['favorites'] }),
     });
   };
+  /**
+   * A promoted card. The click is recorded before navigating, because §17's
+   * campaign click-through rate is measured from it and the screen is about to
+   * unmount - queueing it after the navigate would lose it on a fast device.
+   */
+  const openFeatured = (placement: FeaturedPlacement, position: number) => {
+    trackListingOpen(placement, { surface: 'HOME' }, position);
+    if (placement.listingType === 'shop') {
+      navigation.navigate('ShopDetail', { shopId: placement.id });
+      return;
+    }
+    if (placement.listingType === 'offer') {
+      navigation.navigate('OfferDetail', { offerId: placement.id });
+    }
+  };
+
+  const openRanked = (listing: RankedListing) => {
+    if (listing.listingType === 'service_offer' && listing.serviceId != null) {
+      navigation.navigate('ServiceDetail', { serviceId: listing.serviceId });
+      return;
+    }
+    navigation.navigate('OfferDetail', { offerId: listing.id });
+  };
+
   const openUnifiedListing = (listing: UnifiedListing) => {
     if (listing.sourceType === 'product') {
       navigation.navigate('OfferDetail', { offerId: listing.id });
@@ -158,6 +207,38 @@ export function HomeScreen({ navigation }: Props) {
         {banners.data && banners.data.length > 0 ? (
           <View style={{ marginBottom: spacing.lg }}>
             <BannerCarousel banners={banners.data} onPress={openBanner} onImpression={(b) => trackBanner(b.id, 'impression')} />
+          </View>
+        ) : null}
+
+        {/*
+          §29's shape: the promotional block, then the organic one. Two separate
+          rails rather than one merged list, so a promoted card can never be
+          mistaken for an organic result (§11) and no client-side merge can
+          quietly undo that.
+        */}
+        <FeaturedRail
+          subtitle="Promotions from shops near you"
+          placements={rankedFeed.data?.featured ?? []}
+          onPress={openFeatured}
+        />
+
+        {(rankedFeed.data?.items.length ?? 0) > 0 ? (
+          <View style={{ marginBottom: spacing.lg }}>
+            <SectionHeader title="Picked for you" subtitle="Ranked by relevance, distance and freshness" />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: spacing.md, gap: spacing.sm }}
+            >
+              {(rankedFeed.data?.items ?? []).map((listing) => (
+                <UnifiedListingCard
+                  key={`ranked-${listing.listingType}-${listing.id}`}
+                  listing={toUnifiedListing(listing)}
+                  width={200}
+                  onPress={() => openRanked(listing)}
+                />
+              ))}
+            </ScrollView>
           </View>
         ) : null}
 

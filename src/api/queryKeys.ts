@@ -24,4 +24,13 @@ export const queryKeys = {
   mySupportTickets: (params: unknown) => ['mySupportTickets', params] as const,
   supportTicket: (id: number) => ['supportTicket', id] as const,
   supportContact: () => ['supportContact'] as const,
+
+  // ---- Visibility & Promotion System ----
+  rankedFeed: (params: unknown) => ['rankedFeed', params] as const,
+  rankedNearMe: (params: unknown) => ['rankedNearMe', params] as const,
+  rankedSearch: (params: unknown) => ['rankedSearch', params] as const,
+  rankedCategory: (params: unknown) => ['rankedCategory', params] as const,
+  rankedEndingSoon: (params: unknown) => ['rankedEndingSoon', params] as const,
+  placements: (params: unknown) => ['placements', params] as const,
+  visibilityMeta: () => ['visibilityMeta'] as const,
 };
