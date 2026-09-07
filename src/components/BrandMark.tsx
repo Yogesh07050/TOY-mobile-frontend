@@ -48,6 +48,13 @@ export function BrandMark({ width = 34, style }: BrandMarkProps) {
     <View
       style={[
         {
+          // Never stretch. In a row the cross axis is vertical so this was
+          // moot, but dropped into a plain column - the guest gate does exactly
+          // that - the chip filled the width and read as a cream banner with a
+          // logo stuck to one end. Belongs here rather than at each call site:
+          // a caller should be able to place the mark anywhere without knowing
+          // which axis its parent happens to lay out on.
+          alignSelf: 'flex-start',
           backgroundColor: BRAND_CREAM,
           borderRadius: Math.round(width / 3.8),
           paddingHorizontal: 5,
