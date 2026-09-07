@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { Screen, Avatar } from '../../components/ui';
+import { BrandMark } from '../../components';
 import { useAuth } from '../../store/AuthContext';
 import { GuestGate } from '../../components/GuestGate';
 import type { MainTabScreenProps } from '../../navigation/types';
@@ -100,6 +101,17 @@ export function ProfileScreen({ navigation }: Props) {
   return (
     <Screen>
       <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.lg }}>
+        {/*
+          The mark gets its own row here rather than sitting beside the avatar.
+          This screen's header is the customer's own face and name, which is the
+          right thing to lead with on their profile - putting the app's logo in
+          front of the person would read as the app introducing itself to
+          someone already signed in.
+        */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: -spacing.sm }}>
+          <BrandMark />
+        </View>
+
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
           <Avatar uri={user?.avatarUrl} name={user?.name} size={64} />
           <View style={{ flex: 1, gap: 2 }}>

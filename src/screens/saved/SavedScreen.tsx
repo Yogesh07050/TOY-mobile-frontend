@@ -3,7 +3,7 @@ import { Dimensions, FlatList, Text, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import { Screen, Chip, EmptyState, LoadingView } from '../../components/ui';
-import { OfferCard, ServiceCard, ShopCard } from '../../components';
+import { OfferCard, ServiceCard, ShopCard, BrandMark } from '../../components';
 import { GuestGate } from '../../components/GuestGate';
 import { useAuth } from '../../store/AuthContext';
 import { useFavoritesList, useToggleFavorite } from '../../hooks/useFavorites';
@@ -62,7 +62,10 @@ export function SavedScreen({ navigation }: Props) {
   return (
     <Screen>
       <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.sm, gap: spacing.sm }}>
-        <Text style={{ color: colors.text, fontSize: fontSizes.xl, fontWeight: fontWeights.bold }}>Saved</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+          <BrandMark />
+          <Text style={{ color: colors.text, fontSize: fontSizes.xl, fontWeight: fontWeights.bold }}>Saved</Text>
+        </View>
         <View style={{ flexDirection: 'row', gap: spacing.xs }}>
           <Chip label="Saved Offers" selected={tab === 'offers'} onPress={() => setTab('offers')} />
           <Chip label="Saved Services" selected={tab === 'services'} onPress={() => setTab('services')} />

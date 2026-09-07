@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { Screen, Button, Chip, EmptyState, ErrorState, LoadingView } from '../../components/ui';
 import { getApiErrorMessage, isNetworkError } from '../../api/client';
-import { NotificationBell, FeaturedRail } from '../../components';
+import { NotificationBell, FeaturedRail, BrandMark } from '../../components';
 import { useRankedNearMe } from '../../hooks/useVisibility';
 import { toUnifiedListing } from '../../utils/rankedListing';
 import { trackListingOpen } from '../../services/analytics/visibilityService';
@@ -98,7 +98,10 @@ export function NearMeScreen({ navigation }: Props) {
   return (
     <Screen edges={['top', 'left', 'right']}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.md, paddingTop: spacing.sm, marginBottom: spacing.xs }}>
-        <Text style={{ color: colors.text, fontSize: fontSizes.xl, fontWeight: fontWeights.bold }}>Near Me</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+          <BrandMark />
+          <Text style={{ color: colors.text, fontSize: fontSizes.xl, fontWeight: fontWeights.bold }}>Near Me</Text>
+        </View>
         <NotificationBell />
       </View>
 

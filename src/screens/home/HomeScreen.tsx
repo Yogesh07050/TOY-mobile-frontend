@@ -1,11 +1,10 @@
 import React, { useCallback } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import { Screen } from '../../components/ui';
-import { SearchBar, LocationSelector, BannerCarousel, OfferRail, SectionHeader, CategoryCard, UnifiedListingCard, FeaturedRail } from '../../components';
+import { SearchBar, LocationSelector, BannerCarousel, OfferRail, SectionHeader, CategoryCard, UnifiedListingCard, FeaturedRail, BrandMark } from '../../components';
 import { useAuth } from '../../store/AuthContext';
 import { useAuthPrompt } from '../../store/AuthPromptContext';
 import { useLocationContext } from '../../services/location/LocationContext';
@@ -30,13 +29,6 @@ import type { Offer, Banner, Category, UnifiedListing, FeaturedPlacement, Ranked
 
 type Props = MainTabScreenProps<'Offers'>;
 
-/**
- * The warm cream the brand mark is drawn on (`brand/geometry.js`).
- *
- * Deliberately not a theme colour: it belongs to the logo, not to the screen,
- * and it has to stay cream in dark mode or the mark's ink ring disappears.
- */
-const BRAND_CREAM = '#FBEDC8';
 
 export function HomeScreen({ navigation }: Props) {
   const { colors, spacing, fontSizes, fontWeights } = useTheme();
@@ -159,45 +151,15 @@ export function HomeScreen({ navigation }: Props) {
         <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.sm, gap: spacing.sm }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             {/*
-              The brand mark leads the header. `accessibilityRole="image"` with
-              a label rather than being hidden: it is the only thing on this
-              screen that says which app this is, so a screen reader reaching
-              the top should hear it too. Centred against the two-line block,
-              because pinned to the top it read as misaligned with the headline
-              beside it.
-
-              ## Why the mark sits on its own cream chip
-
-              The asset is transparent, and on a light screen that is exactly
-              right. In dark mode it was not: the mark is ink on the left and
-              gold on the right, and the ink ring vanished into the near-black
-              background - half the logo simply disappeared.
-
-              The fix is the ground, not the artwork. The mark is drawn for warm
-              cream and the palette is matched to the supplied reference, so
-              recolouring the ink ring for dark mode would be redrawing someone
-              else's logo. Giving it the cream it was designed on keeps it
-              exactly as drawn and legible on any background - which is why this
-              colour is a brand constant here rather than a theme token: a token
-              would go dark with the theme and take the ink ring with it.
+              The mark leads the header, before the greeting, and carries an
+              accessibility label - it is the only thing on this screen that
+              says which app this is, so a screen reader arriving at the top
+              should hear it rather than skip it. Centred against the two-line
+              block, because pinned to the top it read as misaligned with the
+              headline beside it.
             */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flex: 1 }}>
-              <View
-                style={{
-                  backgroundColor: BRAND_CREAM,
-                  borderRadius: 9,
-                  paddingHorizontal: 5,
-                  paddingVertical: 4,
-                }}
-              >
-                <Image
-                  source={require('../../../assets/logo-header.png')}
-                  style={{ width: 34, height: 22 }}
-                  contentFit="contain"
-                  accessibilityRole="image"
-                  accessibilityLabel="OffersOffer"
-                />
-              </View>
+              <BrandMark />
               <View style={{ gap: 2, flex: 1 }}>
                 <Text style={{ color: colors.textMuted, fontSize: fontSizes.sm }}>
                   {getTimeOfDayGreeting()} {user?.name?.split(' ')[0] ?? 'there'} 👋

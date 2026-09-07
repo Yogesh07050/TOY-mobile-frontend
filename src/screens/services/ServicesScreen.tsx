@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import { Screen, Chip, EmptyState, ErrorState, LoadingView } from '../../components/ui';
 import { getApiErrorMessage, isNetworkError } from '../../api/client';
-import { SearchBar, ServiceCard, NotificationBell } from '../../components';
+import { SearchBar, ServiceCard, NotificationBell, BrandMark } from '../../components';
 import { useServicesList } from '../../hooks/useServices';
 import { useToggleSavedService } from '../../hooks/useSavedServices';
 import { useAuthPrompt } from '../../store/AuthPromptContext';
@@ -83,7 +83,10 @@ export function ServicesScreen({ navigation }: Props) {
     <Screen edges={['top', 'left', 'right']}>
       <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.sm, gap: spacing.sm }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ color: colors.text, fontSize: fontSizes.xl, fontWeight: fontWeights.bold }}>Services</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+            <BrandMark />
+            <Text style={{ color: colors.text, fontSize: fontSizes.xl, fontWeight: fontWeights.bold }}>Services</Text>
+          </View>
           <NotificationBell />
         </View>
 
