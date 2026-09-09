@@ -11,6 +11,7 @@ import { useRankedNearMe } from '../../hooks/useVisibility';
 import { toUnifiedListing } from '../../utils/rankedListing';
 import { trackListingOpen } from '../../services/analytics/visibilityService';
 import { useLocationContext } from '../../services/location/LocationContext';
+import { formatDistance } from '../../utils/format';
 import type { MainTabScreenProps } from '../../navigation/types';
 import type { FeaturedPlacement, UnifiedListing } from '../../types';
 
@@ -213,7 +214,7 @@ export function NearMeScreen({ navigation }: Props) {
                       </Text>
                       <Text numberOfLines={1} style={{ color: colors.textMuted, fontSize: fontSizes.xs }}>
                         {listing.shop.name}
-                        {listing.distanceKm != null ? ` · ${listing.distanceKm.toFixed(1)} km` : ''}
+                        {formatDistance(listing.distanceKm) ? ` · ${formatDistance(listing.distanceKm)}` : ''}
                       </Text>
                     </View>
                     <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
